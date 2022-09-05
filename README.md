@@ -20,7 +20,7 @@ pip install -r requirement.txt
 
 On the demo, we just provide a pipline of our Gseg. If you want to run the algorithm on your data , please see  **Training** part.
 
-# Training from scratch
+## Training from scratch
 To run the algorithm on your data, use:
 
 ```
