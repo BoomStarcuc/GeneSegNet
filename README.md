@@ -16,7 +16,7 @@ pip install -r requirement.txt
 1. Download the google drive [GoogleDrive](https://drive.google.com/drive/folders/1OtppM5iinLMbZ5tlf8O6OuJMLqJq_p3M?usp=sharing) and unzip it to  ```datasets/```. These are a subset of the original images from the PciSeq datasets.
 2. Download face Gseg pre-trained model at [GoogleDrive](https://drive.google.com/drive/folders/1hzavxQ_zkH6At0vkCzskyg7hlRnKDEC3?usp=sharing), and put it into ```datasets/```
 3. Open jupyter file ```Gseg_demo.ipynb``` in Gseg directory
-4. provide four section in this jupyter: 1. Load Datasets； 2. Data preprocessing； 3. training process； 4. Test using Gseg pre-trained model 
+4. provide four section in this jupyter: 1. Load datasets； 2. Data preprocessing； 3. Training process； 4. Test using Gseg pre-trained model 
 
 On the demo, we just provide a pipline of our Gseg. If you want to run the algorithm on your data , please see  **Training** part.
 
