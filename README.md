@@ -1,4 +1,4 @@
-# Gseg: A deep learning framework for cell segmentation by integrating gene expression and imaging information
+# Gseg: A Deep Learning Framework for Cell Segmentation by Integrating Gene Expression and Imaging Information
 
 ## Overview
 
