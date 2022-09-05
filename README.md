@@ -7,7 +7,7 @@
 1. Clone the repository, use:
 
 ``` 
-git clone
+git clone https://github.com/BoomStarcuc/Gseg.git
 ```
 
 2. Install dependencies, use:
