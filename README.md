@@ -48,6 +48,13 @@ To see full list of command-line options run:
 ```
 python train.py --help
 ```
+After trianing, segmented cell instance is generated with the same size of original input. In addition, we also provide small training demo in section 3 of ```Gseg/Gseg_demo.ipynb```.
 
 ## Running a pre-trained model
+
+1. Before running pre-trained model, please download pre-trained model provided. 
+
+2. See section 4 in ```Gseg/Gseg_demo.ipynb```.
+
+3. Section 4 provides model testing and cell instance mask stitching.
 
