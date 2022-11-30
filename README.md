@@ -64,6 +64,6 @@ Before running pre-trained model, please download pre-trained model provided.
 python GeneSegNet_test.py --use_gpu --test_dir test dataset path --pretrained_model pre-trained model --save_png --img_filter _image --mask_filter _label --all_channels --metrics --dir_above --output_filename a folder name
 ```
 
-## network Inference
+## Network Inference
 
 
