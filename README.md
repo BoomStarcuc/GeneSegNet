@@ -1,4 +1,4 @@
-# Gseg: A Deep Learning Framework for Cell Segmentation by Integrating Gene Expression and Imaging Information
+# GeneSegNet: A Deep Learning Framework for Cell Segmentation by Integrating Gene Expression and Imaging Information
 
 ## Overview
 
@@ -7,7 +7,7 @@
 1. Clone the repository, use:
 
 ``` 
-git clone https://github.com/BoomStarcuc/Gseg.git
+git clone https://github.com/BoomStarcuc/GeneSegNet.git
 ```
 
 2. Install dependencies, use:
@@ -18,18 +18,16 @@ pip install -r requirement.txt
 
 ## Gseg Demo
 
-1. Download the demo datasets at [GoogleDrive](https://drive.google.com/drive/folders/1OtppM5iinLMbZ5tlf8O6OuJMLqJq_p3M?usp=sharing) and unzip it to  ```datasets/```. These are a subset of the original images from the PciSeq datasets.
-2. Download Gseg pre-trained model at [GoogleDrive](https://drive.google.com/drive/folders/1hzavxQ_zkH6At0vkCzskyg7hlRnKDEC3?usp=sharing), and put it into ```datasets/```
-3. Open jupyter file ```Gseg_demo.ipynb``` in Gseg directory
-4. Provide four section in this jupyter: 1. Load datasets； 2. Data preprocessing； 3. Training process； 4. Test using Gseg pre-trained model 
+1. Download the demo datasets at [GoogleDrive](https://drive.google.com/drive/folders/1rF6U5fSq8D-UpZW-iUy4DG16dyxAzvK7?usp=share_link) and unzip them to your project directory.
+2. Download GeneSegNet pre-trained model at [GoogleDrive](https://drive.google.com/drive/folders/1hzavxQ_zkH6At0vkCzskyg7hlRnKDEC3?usp=sharing), and put it into your project directory.
 
-On the demo, we just provide a pipline of our Gseg. If you want to run the algorithm on your data , please see  **Training** part.
+If you want to run the algorithm on your data , please see  **Training** part.
 
 ## Training from scratch
 To run the algorithm on your data, use:
 
 ```
- python Gseg.py --use_gpu --train_dir training dataset path --val_dir validation dataset path --test_dir test dataset path --img_filter _image --mask_filter _label --diam_mean 34.0 --pretrained_model None --all_channels --verbose --save_each --save_png --metrics --variance 7 --save_model_dir save model path
+python -u GeneSeg_train.py --use_gpu --train_dir  training dataset path --val_dir validation dataset path --test_dir test dataset path --pretrained_model None --save_png --save_each --img_filter _image --mask_filter _label --all_channels --verbose --metrics --dir_above --save_model_dir save model path
 ```
 
 Here:
@@ -49,16 +47,23 @@ Here:
 To see full list of command-line options run:
 
 ```
-python train.py --help
+python GeneSeg_train.py --help
+```
+## Test
+
+After trianing, to run test, use:
+
+```
+python GeneSegNet_test.py --use_gpu --test_dir test dataset path --pretrained_model your trained model --save_png --img_filter _image --mask_filter _label --all_channels --metrics --dir_above --output_filename a folder name
 ```
 
-After trianing, segmented cell instance is generated with the same size of original input. In addition, we also provide small training demo in section 3 of ```Gseg/Gseg_demo.ipynb```. (need to be updated)
-
 ## Running a pre-trained model
+Before running pre-trained model, please download pre-trained model provided. 
 
-1. Before running pre-trained model, please download pre-trained model provided. 
+```
+python GeneSegNet_test.py --use_gpu --test_dir test dataset path --pretrained_model pre-trained model --save_png --img_filter _image --mask_filter _label --all_channels --metrics --dir_above --output_filename a folder name
+```
 
-2. See section 4 in ```Gseg/Gseg_demo.ipynb```.
+## network Inference
 
-3. Section 4 provides model testing and cell instance mask stitching.
 
