@@ -65,5 +65,12 @@ python GeneSegNet_test.py --use_gpu --test_dir test dataset path --pretrained_mo
 ```
 
 ## Network Inference
+To obtain final full-resolution segmentation results, use slidingwindows_gradient.py in Inference directory:
+
+```
+python slidingwindows_gradient.py
+```
+
+Note: root_dir, save_dir, and model_file need to be modified to your corresponding path.
 
 
