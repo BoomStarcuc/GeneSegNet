@@ -1,7 +1,7 @@
 # GeneSegNet: A Deep Learning Framework for Cell Segmentation by Integrating Gene Expression and Imaging Information
 
 ## Overview
-<div align=center><img src="https://github.com/BoomStarcuc/GeneSegNet/blob/master/data/GeneSegNet_framework.png" width="1000" height="500"/></div>
+<div align=center><img src="https://github.com/BoomStarcuc/GeneSegNet/blob/master/data/GeneSegNet_framework.png" width="1000" height="450"/></div>
 
 ## Installation
 1. Clone the repository, use:
