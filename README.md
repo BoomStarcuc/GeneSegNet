@@ -1,7 +1,7 @@
 # GeneSegNet: A Deep Learning Framework for Cell Segmentation by Integrating Gene Expression and Imaging Information
 
 ## Overview
-
+<div align=center><img src="https://github.com/BoomStarcuc/GeneSegNet/blob/master/data/GeneSegNet_framework.png" width="345" height="265"/></div>
 
 ## Installation
 1. Clone the repository, use:
@@ -16,7 +16,7 @@ git clone https://github.com/BoomStarcuc/GeneSegNet.git
 pip install -r requirement.txt
 ```
 
-## Gseg Demo
+## Datasets and Model
 
 1. Download the demo datasets at [GoogleDrive](https://drive.google.com/drive/folders/1rF6U5fSq8D-UpZW-iUy4DG16dyxAzvK7?usp=share_link) and unzip them to your project directory.
 2. Download GeneSegNet pre-trained model at [GoogleDrive](https://drive.google.com/drive/folders/1hzavxQ_zkH6At0vkCzskyg7hlRnKDEC3?usp=sharing), and put it into your project directory.
