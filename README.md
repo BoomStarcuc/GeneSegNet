@@ -1,4 +1,4 @@
-# GeneSegNet: A Deep Learning Framework for Cell Segmentation by Integrating Gene Expression and Imaging Information
+# GeneSegNet: A Deep Learning Framework for Cell Segmentation by Integrating Gene Expression and Imaging Information [BioRxiv](https://www.biorxiv.org/content/10.1101/2022.12.13.520283v1)
 
 ## Overview
 <div align=center><img src="https://github.com/BoomStarcuc/GeneSegNet/blob/master/data/GeneSegNet_framework.png" width="1000" height="360"/></div>
