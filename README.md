@@ -19,13 +19,13 @@ conda install pytorch==1.12.1 torchvision==0.13.1 torchaudio==0.12.1 cudatoolkit
 
 but the above command may not match your CUDA environment, please check the link: https://pytorch.org/get-started/previous-versions/#v1121 to find the proper command that satisfied your CUDA environment.
 
-2. Clone the repository, use:
+3. Clone the repository, use:
 
 ``` 
 git clone https://github.com/BoomStarcuc/GeneSegNet.git
 ```
 
-3. Install dependencies, use:
+4. Install dependencies, use:
 
 ```
 pip install -r requirement.txt
