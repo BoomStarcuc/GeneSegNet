@@ -4,13 +4,28 @@
 <div align=center><img src="https://github.com/BoomStarcuc/GeneSegNet/blob/master/data/GeneSegNet_framework.png" width="1000" height="360"/></div>
 
 ## Installation
-1. Clone the repository, use:
+1. Create conda environments, use:
+
+``` 
+conda create -n GeneSegNet python=3.8
+conda activate GeneSegNet
+```
+
+2. Install pytorch (1.12.1 Version), use:
+
+``` 
+conda install pytorch==1.12.1 torchvision==0.13.1 torchaudio==0.12.1 cudatoolkit=11.3 -c pytorch
+```
+
+but the above command may not match your CUDA environment, please check the link: https://pytorch.org/get-started/previous-versions/#v1121 to find the proper command that satisfied your CUDA environment.
+
+2. Clone the repository, use:
 
 ``` 
 git clone https://github.com/BoomStarcuc/GeneSegNet.git
 ```
 
-2. Install dependencies, use:
+3. Install dependencies, use:
 
 ```
 pip install -r requirement.txt
