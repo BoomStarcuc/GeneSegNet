@@ -53,7 +53,7 @@ Here:
 - ```test_dir``` is a folder containing test data to validate training results.
 - ```img_filter```, ```mask_filter```, and ```heatmap_filter``` are end string for images, cell instance mask, and heat map.
 - ```pretrained_model``` is a model to use for running or starting training.
-- ```chan``` is a parameter to change the number of channels as input.
+- ```chan``` is a parameter to change the number of channels as input (default 2 or 4).
 - ```verbose``` shows information about running and settings and save to log.
 - ```save_each``` save the model under per n epoch for later comparsion.
 - ```save_png``` save masks as png and outlines as text file for ImageJ.
