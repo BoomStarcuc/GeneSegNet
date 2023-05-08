@@ -42,9 +42,7 @@ input_img_args.add_argument('--channel_axis',
 input_img_args.add_argument('--z_axis',
                     default=None, type=int, help='axis of image which corresponds to Z dimension')
 input_img_args.add_argument('--chan',
-                    default=0, type=int, help='channel to segment; 0: GRAY, 1: RED, 2: GREEN, 3: BLUE. Default: %(default)s')
-input_img_args.add_argument('--chan2',
-                    default=0, type=int, help='nuclear channel (if cyto, optional); 0: NONE, 1: RED, 2: GREEN, 3: BLUE. Default: %(default)s')
+                    default=2, type=int, help='channel to segment; 2: GRAY image and location map, 4: RGB image and location map. Default: %(default)s')
 input_img_args.add_argument('--invert', action='store_true', help='invert grayscale channel')
 input_img_args.add_argument('--all_channels', action='store_true', help='use all channels in image if using own model and images with special channels')
 
@@ -131,12 +129,12 @@ def test(args, logger, N):
         pretrained_model = args.pretrained_model
     
     tic = time.time()
-    output = Gseg_io.load_train_test_data(args.test_dir, N, image_filter = args.img_filter, 
+    output = Gseg_io.load_train_test_data(args.test_dir, N, args, image_filter = args.img_filter, 
                                     mask_filter = args.mask_filter, heatmap_filter = args.heatmap_filter, 
                                     foldername = args.output_filename)
 
     images, labels, heatmaps, spots, label_names,_,_,_,_,_ = output
-    images = list(np.stack((images, heatmaps), axis=3))
+    images = list(np.concatenate((images, heatmaps), axis=3))
 
     nimg = len(label_names)
     logger.info('>>>> running GeneSegNet on %d images'% nimg)  
@@ -147,7 +145,7 @@ def test(args, logger, N):
     else:
         nchan = 2
 
-    model = models.CellposeModel(gpu=gpu, device=device, 
+    model = models.GeneSegModel(gpu=gpu, device=device, 
                                     pretrained_model=pretrained_model,
                                     model_type=None,
                                     diam_mean=args.diam_mean,

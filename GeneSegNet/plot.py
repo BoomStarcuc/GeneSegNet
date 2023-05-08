@@ -157,6 +157,7 @@ def show_segmentation(fig, img, maski, flowi, labeli, spot, channels=[0,0], file
     imgout = img0.copy()
 
     if len(label_in) != 0:
+    
         ax.scatter(label_in[:,0],label_in[:,1], marker='o', c='c', s=1)
     
     if len(label_out) != 0:

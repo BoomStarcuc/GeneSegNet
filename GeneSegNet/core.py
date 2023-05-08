@@ -871,6 +871,7 @@ class UnetModel():
                 imgi, lbl, scale = transforms.random_rotate_and_resize(
                                         [train_data[i] for i in inds], Y=[train_labels[i][1:] for i in inds],
                                         rescale=rsc, scale_range=scale_range, unet=self.unet)
+                
                 if self.unet and lbl.shape[1]>1 and rescale:
                     lbl[:,1] *= scale[:,np.newaxis,np.newaxis]**2
                 

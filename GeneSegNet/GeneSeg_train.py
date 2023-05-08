@@ -42,9 +42,7 @@ input_img_args.add_argument('--channel_axis',
 input_img_args.add_argument('--z_axis',
                     default=None, type=int, help='axis of image which corresponds to Z dimension')
 input_img_args.add_argument('--chan',
-                    default=0, type=int, help='channel to segment; 0: GRAY, 1: RED, 2: GREEN, 3: BLUE. Default: %(default)s')
-input_img_args.add_argument('--chan2',
-                    default=0, type=int, help='nuclear channel (if cyto, optional); 0: NONE, 1: RED, 2: GREEN, 3: BLUE. Default: %(default)s')
+                    default=2, type=int, help='channel to segment; 2: GRAY image and location map, 4: RGB image and location map. Default: %(default)s')
 input_img_args.add_argument('--invert', action='store_true', help='invert grayscale channel')
 input_img_args.add_argument('--all_channels', action='store_true', help='use all channels in image if using own model and images with special channels')
 
@@ -133,21 +131,22 @@ def label_postprocess(args, logger, N):
 
     for infer in inference_list:
         tic = time.time()
-        output = Gseg_io.load_train_test_data(infer, N, image_filter = args.img_filter, 
+        output = Gseg_io.load_train_test_data(infer, N, args, image_filter = args.img_filter, 
                                         mask_filter = args.mask_filter, heatmap_filter = args.heatmap_filter, 
                                         foldername = args.output_filename)
 
         images, labels, heatmaps, spots, label_names,_,_,_,_,_ = output
-        images = list(np.stack((images, heatmaps), axis=3))
+        # images = list(np.stack((images, heatmaps), axis=3))
+        images = list(np.concatenate((images, heatmaps), axis=3))
 
         nimg = len(label_names)
         logger.info('>>>> running GeneSegNet on %d images'% nimg)
                 
         if args.all_channels:
-            nchan = 2
+            nchan = args.chan
             channels = None 
         else:
-            nchan = 2
+            nchan = args.chan
             
         model = models.GeneSegModel(gpu=gpu, device=device, 
                                         pretrained_model=pretrained_model,
@@ -219,21 +218,22 @@ def test(args, logger, N):
     # print("pretrained_model:",pretrained_model) #False
     
     tic = time.time()
-    output = Gseg_io.load_train_test_data(args.test_dir, N, image_filter = args.img_filter, 
+    output = Gseg_io.load_train_test_data(args.test_dir, N, args, image_filter = args.img_filter, 
                                     mask_filter = args.mask_filter, heatmap_filter = args.heatmap_filter, 
                                     foldername = args.output_filename)
 
     images, labels, heatmaps, spots, label_names,_,_,_,_,_ = output
-    images = list(np.stack((images, heatmaps), axis=3))
+    # images = list(np.stack((images, heatmaps), axis=3))
+    images = list(np.concatenate((images, heatmaps), axis=3))
 
     nimg = len(label_names)
     logger.info('>>>> running GeneSegNet on %d images'% nimg)  
 
     if args.all_channels:
-        nchan = 2
+        nchan = args.chan
         channels = None 
     else:
-        nchan = 2
+        nchan = args.chan
 
     model = models.GeneSegModel(gpu=gpu, device=device, 
                                     pretrained_model=pretrained_model,
@@ -297,7 +297,7 @@ def test(args, logger, N):
     iou = metrics.compute_IoU(args.test_dir)
     print("mIoU: %0.3f"%(iou))
 
-    logger.info('>>>> finish text in %0.3f sec'%(time.time()-tic))
+    logger.info('>>>> finish test in %0.3f sec'%(time.time()-tic))
     return np.mean(ap[:,0])
 
 def train(args, logger, N):
@@ -310,7 +310,7 @@ def train(args, logger, N):
 
     val_dir = None if len(args.val_dir)==0 else args.val_dir
 
-    output = Gseg_io.load_train_test_data(args.train_dir, N, val_dir, image_filter = args.img_filter, 
+    output = Gseg_io.load_train_test_data(args.train_dir, N, args, val_dir, image_filter = args.img_filter, 
                                     mask_filter = args.mask_filter, heatmap_filter = args.heatmap_filter, 
                                     foldername = args.output_filename)
     images, labels, heatmaps, spots ,label_names, test_images, test_labels, test_heatmaps, test_spots, test_label_names = output
@@ -318,23 +318,29 @@ def train(args, logger, N):
     assert len(images) == len(labels) == len(heatmaps) == len(label_names) == len(spots)
     assert len(test_images) == len(test_labels) == len(test_heatmaps) == len(test_label_names) == len(test_spots)
 
-    images = list(np.stack((images, heatmaps), axis=3))
-    test_images = list(np.stack((test_images, test_heatmaps), axis=3))
+    print("images:", images.shape)
+    print("heatmaps:", heatmaps.shape)
+    print("test_images:", test_images.shape)
+    print("test_heatmaps:", test_heatmaps.shape)
+    images = list(np.concatenate((images, heatmaps), axis=3))
+    test_images = list(np.concatenate((test_images, test_heatmaps), axis=3))
 
     # training with all channels
     if args.all_channels:
         img = images[0]
         if img.ndim==3:
-            nchan = 2
+            nchan = args.chan
         elif img.ndim==2:
             nchan = 1
         channels = None 
     else:
-        nchan = 2 
+        nchan = args.chan 
 
     logger.info('>>>> during training rescaling images to fixed diameter of %0.1f pixels'%args.diam_mean)
     logger.info('>>>> START TRAINING')    
     # initialize model
+    print("images shape:", np.array(images).shape)
+    print("@@@@@@@@@nchan@@@@@@@@@@:", nchan)
     model = models.GeneSegModel(device=device,
                                 pretrained_model=pretrained_model,
                                 model_type=None, 
