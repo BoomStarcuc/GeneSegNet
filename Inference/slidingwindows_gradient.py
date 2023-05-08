@@ -254,7 +254,7 @@ def load_data_and_model(root_dir, save_dir, sigma):
     dapi_spots_file = natsorted(glob.glob(os.path.join(os.path.join(root_dir, 'spots/'), '*.csv')))
 
     #load your pre-trained model
-    model_file = os.path.join(root_dir, "model path")
+    model_file = os.path.join(root_dir, "/data/pretrain_model/Gseg_residual_on_style_on_concatenation_off_pciSeq_dataset_offset_2022_10_09_15_26_13.535032_epoch_499") #modify the path to your model
     
     print("dapi_image_file:", len(dapi_image_file))
     print("dapi_mask_file:", len(dapi_mask_file))
@@ -278,7 +278,7 @@ def load_data_and_model(root_dir, save_dir, sigma):
     residual_on = 1
     style_on = 1
     concatenation = 0
-    nchan = 2
+    nchan = 2 # modify the channel according to the number of channel
 
     model = models.GeneSegModel(gpu=gpu, device=device, 
                                 pretrained_model=pretrained_model,
@@ -327,6 +327,10 @@ def load_data_and_model(root_dir, save_dir, sigma):
         kernel = np.ones((5,5), np.uint8)
         wholemask = cv2.morphologyEx(wholemask, cv2.MORPH_OPEN, kernel)
 
+        folderpath = "{}/{}".format(save_dir, "Ours_label")
+        if not os.path.exists(folderpath):
+            os.makedirs(folderpath)
+        
         plt.imshow(wholemask)
         plt.axis("off")
         plt.savefig("{}/Ours_label/CellMap_{}_image.jpg".format(save_dir, filename), bbox_inches='tight', pad_inches = 0)
@@ -341,8 +345,8 @@ def load_data_and_model(root_dir, save_dir, sigma):
 
 if __name__ == '__main__':
     # load inputs
-    root_dir = 'your raw image path'
-    save_dir = 'save path'
+    root_dir = '/data/inference'
+    save_dir = '../results'
     sigma = 7
 
     logger, log_file = logger_setup()
