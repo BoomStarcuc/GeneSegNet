@@ -318,10 +318,10 @@ def train(args, logger, N):
     assert len(images) == len(labels) == len(heatmaps) == len(label_names) == len(spots)
     assert len(test_images) == len(test_labels) == len(test_heatmaps) == len(test_label_names) == len(test_spots)
 
-    print("images:", images.shape)
-    print("heatmaps:", heatmaps.shape)
-    print("test_images:", test_images.shape)
-    print("test_heatmaps:", test_heatmaps.shape)
+    # print("images:", images.shape)
+    # print("heatmaps:", heatmaps.shape)
+    # print("test_images:", test_images.shape)
+    # print("test_heatmaps:", test_heatmaps.shape)
     images = list(np.concatenate((images, heatmaps), axis=3))
     test_images = list(np.concatenate((test_images, test_heatmaps), axis=3))
 
@@ -339,8 +339,8 @@ def train(args, logger, N):
     logger.info('>>>> during training rescaling images to fixed diameter of %0.1f pixels'%args.diam_mean)
     logger.info('>>>> START TRAINING')    
     # initialize model
-    print("images shape:", np.array(images).shape)
-    print("@@@@@@@@@nchan@@@@@@@@@@:", nchan)
+    # print("images shape:", np.array(images).shape)
+    # print("@@@@@@@@@nchan@@@@@@@@@@:", nchan)
     model = models.GeneSegModel(device=device,
                                 pretrained_model=pretrained_model,
                                 model_type=None, 
