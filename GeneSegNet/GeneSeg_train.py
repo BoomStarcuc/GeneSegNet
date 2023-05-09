@@ -294,7 +294,8 @@ def test(args, logger, N):
         ap, tp, fp, fn = metrics.average_precision(masks_true, masks_pred)    
         print("average precision: %0.3f at threshold 0.5, %0.3f at threshold 0.75 and %0.3f at threshold 0.9"%(np.mean(ap[:,0]), np.mean(ap[:,1]), np.mean(ap[:,2])))
 
-    iou = metrics.compute_IoU(args.test_dir)
+    # iou = metrics.compute_IoU(args.test_dir)
+    iou = metrics.compute_IoU(args)
     print("mIoU: %0.3f"%(iou))
 
     logger.info('>>>> finish test in %0.3f sec'%(time.time()-tic))

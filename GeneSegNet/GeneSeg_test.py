@@ -190,7 +190,7 @@ def test(args, logger, N):
                             save_ncolor=args.save_ncolor,dir_above=args.dir_above,savedir=args.savedir,
                             save_txt=args.save_txt, in_folders=args.in_folders)
     
-    iou = metrics.compute_IoU(args.test_dir)
+    iou = metrics.compute_IoU(args)
     print("mIoU: %0.3f"%(iou))
 
     logger.info('>>>> finish text in %0.3f sec'%(time.time()-tic))

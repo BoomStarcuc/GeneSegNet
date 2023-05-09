@@ -303,10 +303,10 @@ def mIoU(pred_mask, mask, smooth=1e-10):
         iou = (intersect + smooth) / (union +smooth)
     return iou
 
-def compute_IoU(test_dir):
+def compute_IoU(args):
     print("------------------------enter compute IoU-------------------------------")
-    _, labels, _, _, label_names, _, _, _, _, _ = Gseg_io.load_train_test_data(test_dir, 0, heatmap_filter='_gaumap_all')
-    _, masks_preds, _, _, mask_pred_names, _, _, _, _, _ = Gseg_io.load_train_test_data(test_dir, 2, heatmap_filter='_gaumap_all')
+    _, labels, _, _, label_names, _, _, _, _, _ = Gseg_io.load_train_test_data(args.test_dir, 0, args, heatmap_filter='_gaumap_all')
+    _, masks_preds, _, _, mask_pred_names, _, _, _, _, _ = Gseg_io.load_train_test_data(args.test_dir, 2, args, heatmap_filter='_gaumap_all')
     
     assert len(labels) == len(masks_preds)
 
