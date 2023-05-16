@@ -140,10 +140,10 @@ def test(args, logger, N):
     logger.info('>>>> running GeneSegNet on %d images'% nimg)  
 
     if args.all_channels:
-        nchan = 2
+        nchan = args.chan
         channels = None 
     else:
-        nchan = 2
+        nchan = args.chan
 
     model = models.GeneSegModel(gpu=gpu, device=device, 
                                     pretrained_model=pretrained_model,
@@ -159,6 +159,9 @@ def test(args, logger, N):
     logger.info('>>>> compute IoU and save predicted results')
     assert len(images) == len(labels) == len(spots) == len(label_names)
     for image, label, spot, label_name in zip(images, labels, spots, label_names):
+        if label.ndim != 2:
+            label = label[0].astype(np.uint8)
+        
         out = model.eval(image, channels=channels, diameter=diameter,
                         do_3D=args.do_3D, net_avg=(not args.fast_mode or args.net_avg),
                         augment=False,
