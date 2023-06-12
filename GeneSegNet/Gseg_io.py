@@ -404,16 +404,6 @@ def save_masks(images, masks, flows, label, spot, file_names, png=True, tif=Fals
             plt.imshow(masks)
             plt.axis('off')
             plt.savefig(os.path.join(maskdir,basename + '_cp_mask' + suffix + ext), bbox_inches='tight', pad_inches = 0 )
-
-            plt.imshow(flows[2])
-            plt.axis('off')
-            plt.savefig(os.path.join(maskdir,basename + '_confidencemap' + suffix + ext), bbox_inches='tight', pad_inches = 0 )
-            plt.clf()
-
-            plt.imshow(flows[3])
-            plt.axis('off')
-            plt.savefig(os.path.join(maskdir,basename + '_centermap' + suffix + ext), bbox_inches='tight', pad_inches = 0 )
-            plt.clf()
             
     if png and MATPLOTLIB:
         img = images.copy()
