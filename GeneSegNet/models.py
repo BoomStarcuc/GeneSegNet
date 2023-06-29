@@ -3,7 +3,7 @@ from pathlib import Path
 import numpy as np
 from tqdm import trange, tqdm
 from urllib.parse import urlparse
-
+import torch
 import logging
 models_logger = logging.getLogger(__name__)
 
@@ -62,49 +62,47 @@ class GeneSegModel(UnetModel):
              rescale=None, diameter=None, do_3D=False, anisotropy=None, net_avg=False, 
              augment=False, tile=True, tile_overlap=0.1,
              resample=True, interp=True,
-             flow_threshold=0.4, cellprob_threshold=0.0,
+             flow_threshold=0.8, confidence_threshold=0.9,
              compute_masks=True, min_size=300, stitch_threshold=0.0, progress=None,  
              loop_run=False, model_loaded=False):
 
         if isinstance(x, list) or x.squeeze().ndim==5:
-            masks, styles, offsetmaps, confimaps, centermaps = [], [], [], [], []
+            masks, styles, flows = [], [], []
             tqdm_out = utils.TqdmToLogger(models_logger, level=logging.INFO)
             nimg = len(x)
             iterator = trange(nimg, file=tqdm_out) if nimg>1 else range(nimg)
             for i in iterator:
-                maski, stylei, offsetmapi, confimapi, centermapi = self.eval(x[i], 
-                                                                            batch_size=batch_size, 
-                                                                            channels=channels[i] if (len(channels)==len(x) and 
-                                                                                                    (isinstance(channels[i], list) or isinstance(channels[i], np.ndarray)) and
-                                                                                                    len(channels[i])==2) else channels, 
-                                                                            channel_axis=channel_axis, 
-                                                                            z_axis=z_axis, 
-                                                                            normalize=normalize, 
-                                                                            invert=invert, 
-                                                                            rescale=rescale[i] if isinstance(rescale, list) or isinstance(rescale, np.ndarray) else rescale,
-                                                                            diameter=diameter[i] if isinstance(diameter, list) or isinstance(diameter, np.ndarray) else diameter, 
-                                                                            do_3D=do_3D, 
-                                                                            anisotropy=anisotropy, 
-                                                                            net_avg=net_avg, 
-                                                                            augment=augment, 
-                                                                            tile=tile, 
-                                                                            tile_overlap=tile_overlap,
-                                                                            resample=resample, 
-                                                                            interp=interp,
-                                                                            flow_threshold=flow_threshold,
-                                                                            cellprob_threshold=cellprob_threshold, 
-                                                                            compute_masks=compute_masks, 
-                                                                            min_size=min_size, 
-                                                                            stitch_threshold=stitch_threshold, 
-                                                                            progress=progress,
-                                                                            loop_run=(i>0),
-                                                                            model_loaded=model_loaded)
+                maski, flowi, stylei = self.eval(x[i], 
+                                                                batch_size=batch_size, 
+                                                                channels=channels[i] if (len(channels)==len(x) and 
+                                                                                        (isinstance(channels[i], list) or isinstance(channels[i], np.ndarray)) and
+                                                                                        len(channels[i])==2) else channels, 
+                                                                channel_axis=channel_axis, 
+                                                                z_axis=z_axis, 
+                                                                normalize=normalize, 
+                                                                invert=invert, 
+                                                                rescale=rescale[i] if isinstance(rescale, list) or isinstance(rescale, np.ndarray) else rescale,
+                                                                diameter=diameter[i] if isinstance(diameter, list) or isinstance(diameter, np.ndarray) else diameter, 
+                                                                do_3D=do_3D, 
+                                                                anisotropy=anisotropy, 
+                                                                net_avg=net_avg, 
+                                                                augment=augment, 
+                                                                tile=tile, 
+                                                                tile_overlap=tile_overlap,
+                                                                resample=resample, 
+                                                                interp=interp,
+                                                                flow_threshold=flow_threshold,
+                                                                confidence_threshold=confidence_threshold, 
+                                                                compute_masks=compute_masks, 
+                                                                min_size=min_size, 
+                                                                stitch_threshold=stitch_threshold, 
+                                                                progress=progress,
+                                                                loop_run=(i>0),
+                                                                model_loaded=model_loaded)
                 masks.append(maski)
-                offsetmaps.append(offsetmapi)
-                confimaps.append(confimapi)
-                centermaps.append(centermapi)
+                flows.append(flowi)
                 styles.append(stylei)
-            return masks, offsetmaps, confimaps, centermaps, styles
+            return masks, flows, styles
         
         else:
             if not model_loaded and (isinstance(self.pretrained_model, list) and not net_avg and not loop_run):
@@ -124,7 +122,7 @@ class GeneSegModel(UnetModel):
                 diameter = self.diam_labels
                 rescale = self.diam_mean / diameter
 
-            masks, styles, offsetmap, confimap, centermap = self._run_cp(x, 
+            masks, styles, offsetmap, confimap = self._run_cp(x, 
                                                           compute_masks=compute_masks,
                                                           normalize=normalize,
                                                           invert=invert,
@@ -135,7 +133,7 @@ class GeneSegModel(UnetModel):
                                                           tile=tile, 
                                                           tile_overlap=tile_overlap,
                                                           flow_threshold=flow_threshold,
-                                                          cellprob_threshold=cellprob_threshold, 
+                                                          confidence_threshold=confidence_threshold, 
                                                           interp=interp,
                                                           min_size=min_size, 
                                                           do_3D=do_3D, 
@@ -143,13 +141,13 @@ class GeneSegModel(UnetModel):
                                                           stitch_threshold=stitch_threshold,
                                                           )
             
-            flows = [plot.dx_to_circ(offsetmap), offsetmap, confimap, centermap]
+            flows = [plot.dx_to_circ(offsetmap), offsetmap, confimap]
             return masks, flows, styles
 
     def _run_cp(self, x, compute_masks=True, normalize=True, invert=False,
                 rescale=1.0, net_avg=False, resample=True,
                 augment=False, tile=True, tile_overlap=0.1,
-                cellprob_threshold=0.0, 
+                confidence_threshold=0.0, 
                 flow_threshold=0.4, min_size=300,
                 interp=True, anisotropy=1.0, do_3D=False, stitch_threshold=0.0,
                 ):
@@ -165,11 +163,11 @@ class GeneSegModel(UnetModel):
         if resample:
             offsetmap = np.zeros((2, nimg, shape[1], shape[2]), np.float32)
             confimap = np.zeros((nimg, shape[1], shape[2]), np.float32)
-            centermap = np.zeros((nimg, shape[1], shape[2]), np.float32)
+            # centermap = np.zeros((nimg, shape[1], shape[2]), np.float32)
         else:
             offsetmap = np.zeros((2, nimg, int(shape[1]*rescale), int(shape[2]*rescale)), np.float32)
             confimap = np.zeros((nimg, int(shape[1]*rescale), int(shape[2]*rescale)), np.float32)
-            centermap = np.zeros((nimg, shape[1], shape[2]), np.float32)
+            # centermap = np.zeros((nimg, shape[1], shape[2]), np.float32)
             
         for i in iterator:
             img = np.asarray(x[i])
@@ -187,7 +185,7 @@ class GeneSegModel(UnetModel):
 
             confimap[i] = yf[:,:,2]
             offsetmap[:, i] = yf[:,:,:2].transpose((2,0,1))
-            centermap[i] = yf[:,:,3]
+            # centermap[i] = yf[:,:,3]
 
             styles[i] = style
         del yf, style
@@ -204,46 +202,44 @@ class GeneSegModel(UnetModel):
             resize = [shape[1], shape[2]] if not resample else None
             
             for i in iterator:
-                outputs = dynamics.compute_masks(offsetmap[:,i], centermap[i], confimap[i], confidence_threshold=cellprob_threshold,
+                outputs = dynamics.compute_masks(offsetmap[:,i], confimap[i], confidence_threshold=confidence_threshold,
                                                         flow_threshold=flow_threshold, interp=interp, resize=resize,
                                                         use_gpu=self.gpu, device=self.device)
-                masks.append(outputs)
+                # print("outputs:", outputs[0].shape)
+                masks.append(outputs[0])
                 
             masks = np.array(masks)
             flow_time = time.time() - tic
             
             if nimg > 1:
                 models_logger.info('masks created in %2.2fs'%(flow_time))
-            masks, offsetmap, confimap, centermap = masks.squeeze(), offsetmap.squeeze(), confimap.squeeze(), centermap.squeeze()
+            masks, offsetmap, confimap = masks.squeeze(), offsetmap.squeeze(), confimap.squeeze()
             
         else:
             masks = np.zeros((confimap.shape[0], confimap.shape[1]))  #pass back zeros if not compute_masks
         
         # print("model_mask:", masks.shape)
-        return masks, styles, offsetmap, confimap, centermap
+        return masks, styles, offsetmap, confimap
 
     def loss_fn(self, lbl, y):
         """ loss function between true labels lbl and prediction y
          y[:,:2] : offset amp
          y[:,2] : confidence map
-         y[:,3] : center map 
          -------
          lbl[:,0] : binary map
-         lbl[:,1] : center map
-         lbl[:,2:] : offset map  
+         lbl[:,1:] : offset map  
         """
-        
+
         binlbl  = self._to_device(lbl[:,0]>.5)
-        center = self._to_device(lbl[:,3]) 
-        offset = self._to_device(lbl[:,1:3]) 
+        # center = self._to_device(lbl[:,3]) 
+        offset = 5. * self._to_device(lbl[:,1:]) 
 
         loss = self.criterion(y[:,:2], offset) 
-
         loss2 = self.criterion2(y[:,2], binlbl)
 
-        loss3 = self.criterion(y[:,3], center)
+        # loss3 = self.criterion(y[:,3], center)
 
-        loss = loss + loss2 + loss3
+        loss = loss + loss2
         return loss
 
     def train(self, train_data, train_labels, train_files=None, 

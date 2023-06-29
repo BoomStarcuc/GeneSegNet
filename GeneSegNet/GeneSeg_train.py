@@ -12,6 +12,7 @@ import matplotlib.pyplot as plt
 from scipy.io import savemat, loadmat
 from PIL import Image    
 import logging
+from skimage import measure
 
 # settings re-grouped a bit
 parser = argparse.ArgumentParser(description='GeneSegNet parameters')
@@ -65,7 +66,7 @@ algorithm_args.add_argument('--stitch_threshold', required=False, default=0.0, t
 algorithm_args.add_argument('--fast_mode', action='store_true', help='now equivalent to --no_resample; make code run faster by turning off resampling')
 
 algorithm_args.add_argument('--flow_threshold', default=0.4, type=float, help='flow error threshold, 0 turns off this optional QC step. Default: %(default)s')
-algorithm_args.add_argument('--cellprob_threshold', default=0.8, type=float, help='cellprob threshold, default is 0, decrease to find more and larger masks')
+algorithm_args.add_argument('--confidence_threshold', default=0.0, type=float, help='cellprob threshold, default is 0, decrease to find more and larger masks')
 
 algorithm_args.add_argument('--anisotropy', required=False, default=1.0, type=float,
                     help='anisotropy of volume in 3D')
@@ -78,7 +79,8 @@ output_args.add_argument('--save_tif', action='store_true', help='save masks as 
 output_args.add_argument('--no_npy', action='store_true', help='suppress saving of npy')
 output_args.add_argument('--savedir',
                     default=None, type=str, help='folder to which segmentation results will be saved (defaults to input image directory)')
-output_args.add_argument('--output_filename', default="newlabels", type=str, help='output filename') 
+output_args.add_argument('--output_filename', default="newlabels", type=str, help='output filename')
+output_args.add_argument('--output_visual', default="visresults", type=str, help='output visual results')  
 output_args.add_argument('--dir_above', action='store_true', help='save output folders adjacent to image folder instead of inside it (off by default)')
 output_args.add_argument('--in_folders', action='store_true', help='flag to save output in folders (off by default)')
 output_args.add_argument('--save_flows', action='store_true', help='whether or not to save RGB images of flows when masks are saved (disabled by default)')
@@ -95,7 +97,7 @@ training_args.add_argument('--train_size', action='store_true', help='train size
 training_args.add_argument('--diam_mean',
                     default=34., type=float, help='mean diameter to resize cells to during training -- if starting from pretrained models it cannot be changed from 30.0')
 training_args.add_argument('--learning_rate',
-                    default=0.0001, type=float, help='learning rate. Default: %(default)s')
+                    default=0.001, type=float, help='learning rate. Default: %(default)s')
 training_args.add_argument('--weight_decay',
                     default=0.00001, type=float, help='weight decay. Default: %(default)s')
 training_args.add_argument('--n_epochs',
@@ -103,16 +105,17 @@ training_args.add_argument('--n_epochs',
 training_args.add_argument('--batch_size',
                     default=8, type=int, help='batch size. Default: %(default)s')
 training_args.add_argument('--min_train_masks',
-                    default=2, type=int, help='minimum number of masks a training image must have to be used. Default: %(default)s')
+                    default=1, type=int, help='minimum number of masks a training image must have to be used. Default: %(default)s')
 training_args.add_argument('--residual_on',
                     default=1, type=int, help='use residual connections')
 training_args.add_argument('--style_on',
-                    default=1, type=int, help='use style vector')
+                    default=0, type=int, help='use style vector')
 training_args.add_argument('--concatenation',
                     default=0, type=int, help='concatenate downsampled layers with upsampled layers (off by default which means they are added)')
 training_args.add_argument('--save_every',
                     default=100, type=int, help='number of epochs to skip between saves. Default: %(default)s')
 training_args.add_argument('--save_each', action='store_true', help='save the model under a different filename per --save_every epoch for later comparsion')
+training_args.add_argument('--recursive_num', default=3, type=int, help='the number of the recursive training')
 
 # misc settings
 parser.add_argument('--verbose', action='store_true', help='show information about running and settings and save to log')
@@ -125,7 +128,7 @@ def label_postprocess(args, logger, N):
     else:
         pretrained_model = args.pretrained_model
     
-    inference_list = [args.train_dir, args.val_dir]
+    inference_list = [args.train_dir, args.val_dir, args.test_dir]
     
     logger.info('>>>> START POSTPROCESSING')
 
@@ -160,19 +163,17 @@ def label_postprocess(args, logger, N):
 
         diameter = args.diameter
         assert len(images) == len(labels) == len(spots) == len(label_names)
-        labels_list = []
-        masks_list = []
-        postmasks_list = []
-        e_labels_list = []
-        e_masks_list = []
-        e_postmasks_list = []
+
         for image, label, spot, label_name in zip(images, labels, spots, label_names):
+            if label.ndim != 2:
+                label = label[0].astype(np.uint8)
+
             out = model.eval(image, channels=channels, diameter=diameter,
                             do_3D=args.do_3D, net_avg=(not args.fast_mode or args.net_avg),
                             augment=False,
                             resample=(not args.no_resample and not args.fast_mode),
                             flow_threshold=args.flow_threshold,
-                            cellprob_threshold=args.cellprob_threshold,
+                            confidence_threshold=args.confidence_threshold,
                             stitch_threshold=args.stitch_threshold,
                             invert=args.invert,
                             batch_size=args.batch_size,
@@ -183,7 +184,8 @@ def label_postprocess(args, logger, N):
                             anisotropy=args.anisotropy,
                             model_loaded=True)
             masks, flows = out[:2]
-            
+            masks = fastremap.renumber(masks, in_place=True)[0]
+
             #post-preprocess:
             savedir = str(Path(label_name).parent.parent.absolute()) + '/{}'.format(args.output_filename)
             basename = os.path.splitext(os.path.basename(label_name))[0]
@@ -199,6 +201,12 @@ def label_postprocess(args, logger, N):
             mask = dynamics.postprocess(mask, N, device = device)
             mask = utils.fill_holes_and_remove_small_masks(mask, min_size=300)
 
+            Gseg_io.save_masks(image[:,:,0], mask, flows, label, spot, label_name, png=args.save_png, tif=args.save_tif,
+                            foldername = "{}_{}th".format('ppvisualresults', N), save_flows=args.save_flows,save_outlines=args.save_outlines,
+                            save_ncolor=args.save_ncolor,dir_above=args.dir_above,savedir=args.savedir,
+                            save_txt=args.save_txt, in_folders=args.in_folders)
+            
+            mask = fastremap.renumber(mask, in_place=True)[0]
             im = Image.fromarray(mask)
             im_path = os.path.join(savedir, basename + '.png')
             im.save(im_path)
@@ -246,19 +254,23 @@ def test(args, logger, N):
                                     nchan=nchan)
     diameter = args.diameter
 
+    spots_list = []
     filename = []
     masks_true = []
     masks_pred = []
 
-    logger.info('>>>> compute IoU and save predicted results')
+    logger.info('>>>> save predicted results')
     assert len(images) == len(labels) == len(spots) == len(label_names)
     for image, label, spot, label_name in zip(images, labels, spots, label_names):
+        if label.ndim != 2:
+            label = label[0].astype(np.uint8)
+
         out = model.eval(image, channels=channels, diameter=diameter,
                         do_3D=args.do_3D, net_avg=(not args.fast_mode or args.net_avg),
                         augment=False,
                         resample=(not args.no_resample and not args.fast_mode),
                         flow_threshold=args.flow_threshold,
-                        cellprob_threshold=args.cellprob_threshold,
+                        confidence_threshold=args.confidence_threshold,
                         stitch_threshold=args.stitch_threshold,
                         invert=args.invert,
                         batch_size=args.batch_size,
@@ -269,7 +281,7 @@ def test(args, logger, N):
                         anisotropy=args.anisotropy,
                         model_loaded=True)
         masks, flows = out[:2]
-
+        masks = fastremap.renumber(masks, in_place=True)[0]
         if len(out) > 3:
             diams = out[-1]
         else:
@@ -279,35 +291,35 @@ def test(args, logger, N):
         if args.no_npy:
             Gseg_io.masks_flows_to_seg(image[:,:,0], masks, flows, diams, label_name, channels)
         if saving_something:
-            Gseg_io.save_masks(image[:,:,0], masks, flows, label, spot, label_name, png=args.save_png, tif=args.save_tif,
-                            foldername = args.output_filename, save_flows=args.save_flows,save_outlines=args.save_outlines,
+            # masks = utils.remove_edge_masks(masks)
+            Gseg_io.save_masks(image[:,:,0], utils.remove_edge_masks(masks), flows, label, spot, label_name, png=args.save_png, tif=args.save_tif,
+                            foldername = "{}_{}th".format(args.output_visual, N), save_flows=args.save_flows,save_outlines=args.save_outlines,
                             save_ncolor=args.save_ncolor,dir_above=args.dir_above,savedir=args.savedir,
                             save_txt=args.save_txt, in_folders=args.in_folders)
         
         if label.max() != 0:
+            spots_list.append(spot)
             filename.append(os.path.basename(label_name))
             masks_true.append(label)
             masks_pred.append(masks)
         
-    print("len label:", len(masks_true), len(masks_pred), len(filename))
+    # print("len label:", len(masks_true), len(masks_pred), len(filename))
     if args.metrics:
         ap, tp, fp, fn = metrics.average_precision(masks_true, masks_pred)    
         print("average precision: %0.3f at threshold 0.5, %0.3f at threshold 0.75 and %0.3f at threshold 0.9"%(np.mean(ap[:,0]), np.mean(ap[:,1]), np.mean(ap[:,2])))
 
-    # iou = metrics.compute_IoU(args.test_dir)
-    iou = metrics.compute_IoU(args)
-    print("mIoU: %0.3f"%(iou))
-
     logger.info('>>>> finish test in %0.3f sec'%(time.time()-tic))
-    return np.mean(ap[:,0])
 
 def train(args, logger, N):
     device, gpu = models.assign_device(use_torch=True, gpu=args.use_gpu, device=args.gpu_device)
+    
+    tic = time.time()
+    # if args.pretrained_model is None or args.pretrained_model == 'None' or args.pretrained_model == 'False' or args.pretrained_model == '0':
+    #     pretrained_model = False
+    # else:
+    #     pretrained_model = args.pretrained_model
 
-    if args.pretrained_model is None or args.pretrained_model == 'None' or args.pretrained_model == 'False' or args.pretrained_model == '0':
-        pretrained_model = False
-    else:
-        pretrained_model = args.pretrained_model
+    pretrained_model = False
 
     val_dir = None if len(args.val_dir)==0 else args.val_dir
 
@@ -318,11 +330,7 @@ def train(args, logger, N):
 
     assert len(images) == len(labels) == len(heatmaps) == len(label_names) == len(spots)
     assert len(test_images) == len(test_labels) == len(test_heatmaps) == len(test_label_names) == len(test_spots)
-
-    # print("images:", images.shape)
-    # print("heatmaps:", heatmaps.shape)
-    # print("test_images:", test_images.shape)
-    # print("test_heatmaps:", test_heatmaps.shape)
+    
     images = list(np.concatenate((images, heatmaps), axis=3))
     test_images = list(np.concatenate((test_images, test_heatmaps), axis=3))
 
@@ -339,9 +347,7 @@ def train(args, logger, N):
 
     logger.info('>>>> during training rescaling images to fixed diameter of %0.1f pixels'%args.diam_mean)
     logger.info('>>>> START TRAINING')    
-    # initialize model
-    # print("images shape:", np.array(images).shape)
-    # print("@@@@@@@@@nchan@@@@@@@@@@:", nchan)
+    
     model = models.GeneSegModel(device=device,
                                 pretrained_model=pretrained_model,
                                 model_type=None, 
@@ -362,9 +368,9 @@ def train(args, logger, N):
                                 n_epochs=args.n_epochs,
                                 batch_size=args.batch_size, 
                                 min_train_masks=args.min_train_masks)
-    model.pretrained_model = cpmodel_path
     args.pretrained_model = cpmodel_path
     logger.info('>>>> model trained and saved to %s'%cpmodel_path)
+    logger.info('>>>> finish training in %0.3f sec'%(time.time()-tic))
 
 if __name__ == '__main__':
     args = parser.parse_args()
@@ -376,15 +382,14 @@ if __name__ == '__main__':
         print('No --verbose => no progress or info printed')
         logger = logging.getLogger(__name__)
 
-    IoU = 0
     N = 1
-    while IoU <= 0.93 and N <= 10:
+    while N <= args.recursive_num:
         logger.info('>>>> %dth external iteration'% N)
         train(args, logger, N)
-        IoU = test(args, logger, N)
-        if IoU<=0.93:
-            label_postprocess(args, logger, N)
+        test(args, logger, N)
+        label_postprocess(args, logger, N)
         N += 1
     logger.info('>>>> finsh training')
+
 
     

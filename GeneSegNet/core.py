@@ -87,7 +87,7 @@ class UnetModel():
     def __init__(self, gpu=False, pretrained_model=False,
                     diam_mean=30., net_avg=False, device=None,
                     residual_on=False, style_on=False, concatenation=True,
-                    nclasses=4, nchan=2):
+                    nclasses=3, nchan=2):
         self.unet = True
         self.torch = True
         self.mkldnn = None
@@ -763,6 +763,7 @@ class UnetModel():
         if self.unet:
             self.criterion = nn.CrossEntropyLoss(reduction='mean')
         else:
+            self.sigmoid = nn.Sigmoid()
             self.criterion  = nn.MSELoss(reduction='mean')
             self.criterion2 = nn.BCEWithLogitsLoss(reduction='mean')
             

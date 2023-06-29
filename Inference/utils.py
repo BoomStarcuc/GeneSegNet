@@ -9,7 +9,8 @@ from scipy.stats import gmean
 import numpy as np
 import colorsys
 import io
-
+from skimage import measure
+import fastremap
 import metrics
 
 try:
@@ -147,41 +148,72 @@ def masks_to_edges(masks, threshold=1.0):
     edges = (dist_to_bound < threshold) * (masks > 0)
     return edges
 
-def remove_edge_masks(masks, change_index=True):
+def remove_edge_masks(mask):
     """ remove masks with pixels on edge of image
     
     Parameters
     ----------------
 
-    masks: int, 2D or 3D array 
-        size [Ly x Lx] or [Lz x Ly x Lx], 0=NO masks; 1,2,...=mask labels
-
-    change_index: bool (optional, default True)
-        if True, after removing masks change indexing so no missing label numbers
+    masks: int, 2D array 
+        size [Ly x Lx], 0=NO masks; 1,2,...=mask labels
 
     Returns
     ----------------
 
-    outlines: 2D or 3D array 
-        size [Ly x Lx] or [Lz x Ly x Lx], 0=NO masks; 1,2,...=mask labels
+    outlines: 2D array 
+        size [Ly x Lx], 0=NO masks; 1,2,...=mask labels
 
     """
-    slices = find_objects(masks.astype(int))
-    for i,si in enumerate(slices):
-        remove = False
-        if si is not None:
-            for d,sid in enumerate(si):
-                if sid.start==0 or sid.stop==masks.shape[d]:
-                    remove=True
-                    break  
-            if remove:
-                masks[si][masks[si]==i+1] = 0
-    shape = masks.shape
-    if change_index:
-        _,masks = np.unique(masks, return_inverse=True)
-        masks = np.reshape(masks, shape).astype(np.int32)
+    mask_new = measure.label(mask, connectivity = mask.ndim) #[256,256]
+    regions = measure.regionprops(mask_new)
+    mask = mask_new.copy()
+    
+    for region in regions:
+        if region.bbox_area > 0.9 * mask.shape[0] * mask.shape[1]:
+            mask[mask_new == (region.label)] = 0
+        
+        if region.area < 300 or region.bbox[2] - region.bbox[0] < mask.shape[0]*0.1 or region.bbox[3] - region.bbox[1] < mask.shape[0]*0.1:
+            mask[mask_new == (region.label)] = 0
+    
+    mask = fastremap.renumber(mask, in_place=True)[0]
 
-    return masks
+    return mask
+
+# def remove_edge_masks(masks, change_index=True):
+#     """ remove masks with pixels on edge of image
+    
+#     Parameters
+#     ----------------
+
+#     masks: int, 2D or 3D array 
+#         size [Ly x Lx] or [Lz x Ly x Lx], 0=NO masks; 1,2,...=mask labels
+
+#     change_index: bool (optional, default True)
+#         if True, after removing masks change indexing so no missing label numbers
+
+#     Returns
+#     ----------------
+
+#     outlines: 2D or 3D array 
+#         size [Ly x Lx] or [Lz x Ly x Lx], 0=NO masks; 1,2,...=mask labels
+
+#     """
+#     slices = find_objects(masks.astype(int))
+#     for i,si in enumerate(slices):
+#         remove = False
+#         if si is not None:
+#             for d,sid in enumerate(si):
+#                 if sid.start==0 or sid.stop==masks.shape[d]:
+#                     remove=True
+#                     break  
+#             if remove:
+#                 masks[si][masks[si]==i+1] = 0
+#     shape = masks.shape
+#     if change_index:
+#         _,masks = np.unique(masks, return_inverse=True)
+#         masks = np.reshape(masks, shape).astype(np.int32)
+
+#     return masks
 
 def masks_to_outlines(masks):
     """ get outlines of masks as a 0-1 array 

@@ -157,6 +157,7 @@ def show_segmentation(fig, img, maski, flowi, labeli, spot, channels=[0,0], file
     imgout = img0.copy()
 
     if len(label_in) != 0:
+    
         ax.scatter(label_in[:,0],label_in[:,1], marker='o', c='c', s=1)
     
     if len(label_out) != 0:
@@ -164,12 +165,12 @@ def show_segmentation(fig, img, maski, flowi, labeli, spot, channels=[0,0], file
     
     ax.scatter(outY_gt, outX_gt, marker = ',' , c='r', lw=0, s=0.1)
     ax.imshow(imgout)
-    ax.set_title('pciSeq outlines')
+    ax.set_title('outlines')
     ax.axis('off')
 
     ax = fig.add_subplot(1,6,5)
     ax.imshow(overlay_gt)
-    ax.set_title('pciSeq masks')
+    ax.set_title('masks')
     ax.axis('off')
 
     ax = fig.add_subplot(1,6,6)

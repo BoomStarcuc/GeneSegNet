@@ -5,7 +5,6 @@ import torch.nn as nn
 import torch.nn.functional as F
 import cv2
 
-
 class Morphology(nn.Module):
     '''
     Base class for morpholigical operators 
@@ -85,16 +84,3 @@ def fixed_padding(inputs, kernel_size, dilation):
     pad_end = pad_total - pad_beg
     padded_inputs = F.pad(inputs, (pad_beg, pad_end, pad_beg, pad_end))
     return padded_inputs
-    
-    
-if __name__ == '__main__':
-    # test
-    #x=torch.randn(2,3,16,16)
-    image = cv2.imread("/home/yw2009/anaconda3/envs/medicalimage/TUNet_Gau/InputShow/test/CropShow_Var5/0_label.jpg", 0)
-    image = torch.from_numpy(image[None,...]).cuda().unsqueeze(0)/255.0
-    print(image.shape)
-
-    e=Dilation2d(1, 1, 5, soft_max=False).cuda()
-    y=e(image)
-    print(y.cpu().detach().numpy().squeeze().shape)
-    cv2.imwrite("test.jpg",y.cpu().detach().numpy().squeeze()*255.0)

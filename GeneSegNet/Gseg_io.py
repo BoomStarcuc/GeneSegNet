@@ -135,16 +135,13 @@ def get_label_files(folder, N, mask_filter='_label', foldername = 'newlabels'):
     if N == 1 and os.path.exists(label_path):
         shutil.rmtree(label_path)
     
-    # print("@@@@@@@@@@@@@@@@@@label_path@@@@@@@@@@@@@@@@@@@@@@@", label_path)
     if not os.path.exists(label_path) or N == 0:
-        print("#################enter label @@@@@@@@@@@@@@@@@@@@@@@@@")
         label_names.extend(glob.glob(os.path.join(folder, "labels") + '/*%s.png'%mask_filter))
         label_names.extend(glob.glob(os.path.join(folder, "labels") + '/*%s.jpg'%mask_filter))
         label_names.extend(glob.glob(os.path.join(folder, "labels") + '/*%s.jpeg'%mask_filter))
         label_names.extend(glob.glob(os.path.join(folder, "labels") + '/*%s.tif'%mask_filter))
         label_names.extend(glob.glob(os.path.join(folder, "labels") + '/*%s.tiff'%mask_filter))
     else:
-        print("#################enter output @@@@@@@@@@@@@@@@@@@@@@@@@")
         label_names.extend(glob.glob(label_path + '/*%s.png'%mask_filter))
         label_names.extend(glob.glob(label_path + '/*%s.jpg'%mask_filter))
         label_names.extend(glob.glob(label_path + '/*%s.jpeg'%mask_filter))
@@ -400,10 +397,6 @@ def save_masks(images, masks, flows, label, spot, file_names, png=True, tif=Fals
             im = Image.fromarray(masks)
             im_path = os.path.join(maskdir,basename[:-5] + 'label' + suffix + ext)
             im.save(im_path)
-
-            plt.imshow(masks)
-            plt.axis('off')
-            plt.savefig(os.path.join(maskdir,basename + '_cp_mask' + suffix + ext), bbox_inches='tight', pad_inches = 0 )
             
     if png and MATPLOTLIB:
         img = images.copy()

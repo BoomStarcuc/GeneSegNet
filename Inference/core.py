@@ -49,7 +49,7 @@ def use_gpu(gpu_number=0, use_torch=True):
     if use_torch:
         return _use_gpu_torch(gpu_number)
     else:
-        raise ValueError('cellpose only runs with pytorch now')
+        raise ValueError('GeneSegNet only runs with pytorch now')
 
 def _use_gpu_torch(gpu_number=0):
     try:
@@ -87,7 +87,7 @@ class UnetModel():
     def __init__(self, gpu=False, pretrained_model=False,
                     diam_mean=30., net_avg=False, device=None,
                     residual_on=False, style_on=False, concatenation=True,
-                    nclasses=4, nchan=2):
+                    nclasses=3, nchan=2):
         self.unet = True
         self.torch = True
         self.mkldnn = None
@@ -612,9 +612,6 @@ class UnetModel():
 
     def loss_fn(self, lbl, y):
         """ loss function between true labels lbl and prediction y """
-        # if available set boundary pixels to 2
-        # print("lbl:", lbl)
-        # print("y:", y)
         if lbl.shape[1]>1 and self.nclasses>2:
             boundary = lbl[:,1]<=4
             lbl = lbl[:,0]
@@ -718,16 +715,10 @@ class UnetModel():
         return cell_threshold, boundary_threshold
 
     def _train_step(self, x, lbl):
-        '''
-        x: (8,2,224,224)
-        lbl:(8,4,224,224)
-        '''
-        # print("train_step_x:", x.shape)
-        # print("train_step_x:", lbl.shape)
         X = self._to_device(x)
         self.optimizer.zero_grad()
         self.net.train()
-        y = self.net(X)[0] #[b,4,224.224]
+        y = self.net(X)[0]
         loss = self.loss_fn(lbl, y)
         loss.backward()
         train_loss = loss.item()
@@ -745,14 +736,22 @@ class UnetModel():
             test_loss *= len(x)
         return test_loss
 
-    def _set_optimizer(self, learning_rate, momentum, weight_decay, SGD=False):
-        if SGD:
+    def _set_optimizer(self, learning_rate, momentum, weight_decay, optimaMethod="SGD"):
+        if optimaMethod == 'SGD':
             self.optimizer = torch.optim.SGD(self.net.parameters(), lr=learning_rate,
                                         momentum=momentum, weight_decay=weight_decay)
+            core_logger.info('>>> Using SGD optimizer')
+        elif optimaMethod == 'AdamW':
+            self.optimizer = torch.optim.AdamW(self.net.parameters(), lr=learning_rate, betas=(0.9, 0.999), eps=1e-08, weight_decay=weight_decay)
+            core_logger.info('>>> Using AdamW optimizer')
+            self.optimizer.current_lr = learning_rate
+        elif optimaMethod == 'Adam':
+            self.optimizer = torch.optim.Adam(self.net.parameters(), lr=learning_rate, betas=(0.9, 0.999), eps=1e-08, weight_decay=weight_decay)
+            core_logger.info('>>> Using Adam optimizer')
+            self.optimizer.current_lr = learning_rate
         else:
-            import torch_optimizer as optim # for RADAM optimizer
-            self.optimizer = optim.RAdam(self.net.parameters(), lr=learning_rate, betas=(0.95, 0.999), #changed to .95
-                                        eps=1e-08, weight_decay=weight_decay)
+            import torch_optimizer as optim
+            self.optimizer = optim.RAdam(self.net.parameters(), lr=learning_rate, betas=(0.95, 0.999), eps=1e-08, weight_decay=weight_decay)
             core_logger.info('>>> Using RAdam optimizer')
             self.optimizer.current_lr = learning_rate
         
@@ -764,6 +763,7 @@ class UnetModel():
         if self.unet:
             self.criterion = nn.CrossEntropyLoss(reduction='mean')
         else:
+            self.sigmoid = nn.Sigmoid()
             self.criterion  = nn.MSELoss(reduction='mean')
             self.criterion2 = nn.BCEWithLogitsLoss(reduction='mean')
             
@@ -773,12 +773,6 @@ class UnetModel():
               learning_rate=0.2, n_epochs=500, momentum=0.9, weight_decay=0.00001, 
               SGD=True, batch_size=8, nimg_per_epoch=None, rescale=True, model_name=None): 
         """ train function uses loss function self.loss_fn in models.py"""
-        
-        # print("train_data_train_net:", np.array(train_data).shape) #(1316,2,256,256)
-        # print("train_labels_train_net:", np.array(train_labels).shape) #(1316,5,256,256)
-        # print("test_data_train_net:", np.array(test_data).shape) #(328,2,256,256)
-        # print("test_labels_train_net:", np.array(test_labels).shape) #(328,5,256,256)
-
         d = datetime.datetime.now()
         
         self.n_epochs = n_epochs
@@ -792,20 +786,19 @@ class UnetModel():
         else:
             self.learning_rate_const = learning_rate
             # set learning rate schedule    
-            if SGD:
-                LR = np.linspace(0, self.learning_rate_const, 10)
-                if self.n_epochs > 250:
-                    LR = np.append(LR, self.learning_rate_const*np.ones(self.n_epochs-100))
-                    for i in range(10):
-                        LR = np.append(LR, LR[-1]/2 * np.ones(10))
-                else:
-                    LR = np.append(LR, self.learning_rate_const*np.ones(max(0,self.n_epochs-10)))
+            # if SGD:
+            LR = np.linspace(0, self.learning_rate_const, 10)
+            if self.n_epochs > 250:
+                LR = np.append(LR, self.learning_rate_const*np.ones(self.n_epochs-100))
+                for i in range(10):
+                    LR = np.append(LR, LR[-1]/2 * np.ones(10))
             else:
-                LR = self.learning_rate_const * np.ones(self.n_epochs)
+                LR = np.append(LR, self.learning_rate_const*np.ones(max(0,self.n_epochs-10)))
+
             self.learning_rate = LR
 
         self.batch_size = batch_size
-        self._set_optimizer(self.learning_rate[0], momentum, weight_decay, SGD)
+        self._set_optimizer(self.learning_rate[0], momentum, weight_decay, optimaMethod = "AdamW")
         self._set_criterion()
         
         nimg = len(train_data)
@@ -867,8 +860,8 @@ class UnetModel():
             inds_all = np.hstack((inds_all, rperm))
         
         for iepoch in range(self.n_epochs):    
-            if SGD:
-                self._set_learning_rate(self.learning_rate[iepoch])
+            # if SGD:
+            self._set_learning_rate(self.learning_rate[iepoch])
             np.random.seed(iepoch)
             rperm = inds_all[iepoch*nimg_per_epoch:(iepoch+1)*nimg_per_epoch]
             for ibatch in range(0,nimg_per_epoch,batch_size):
@@ -876,15 +869,13 @@ class UnetModel():
                 rsc = diam_train[inds] / self.diam_mean if rescale else np.ones(len(inds), np.float32)
                 # now passing in the full train array, need the labels for distance field
                 
-                
                 imgi, lbl, scale = transforms.random_rotate_and_resize(
                                         [train_data[i] for i in inds], Y=[train_labels[i][1:] for i in inds],
                                         rescale=rsc, scale_range=scale_range, unet=self.unet)
-                if self.unet and lbl.shape[1]>1 and rescale:
-                    lbl[:,1] *= scale[:,np.newaxis,np.newaxis]**2#diam_batch[:,np.newaxis,np.newaxis]**2
                 
-                # print("imgi_train_net:", imgi.shape) #(8,2,224,224)
-                # print("lbl_train_net:", lbl.shape) #(8,4,224,224)
+                if self.unet and lbl.shape[1]>1 and rescale:
+                    lbl[:,1] *= scale[:,np.newaxis,np.newaxis]**2
+                
                 train_loss = self._train_step(imgi, lbl)
                 lavg += train_loss
                 nsum += len(imgi) 
@@ -904,8 +895,6 @@ class UnetModel():
                         if self.unet and lbl.shape[1]>1 and rescale:
                             lbl[:,1] *= scale[:,np.newaxis,np.newaxis]**2
 
-                        # print("imgi_test_train_net:", imgi.shape) #(8,5,224,224)
-                        # print("lbl_test_train_net:", lbl.shape) # (8,3,224,224)
                         test_loss = self._test_eval(imgi, lbl)
                         lavgt += test_loss
                         nsum += len(imgi)
@@ -921,7 +910,7 @@ class UnetModel():
             if save_path is not None:
                 if iepoch==self.n_epochs-1 or iepoch%save_every==1:
                     # save model at the end
-                    if save_each: #separate files as model progresses 
+                    if save_each:
                         if model_name is None:
                             file_name = '{}_{}_{}_{}'.format(self.net_type, file_label, 
                                                              d.strftime("%Y_%m_%d_%H_%M_%S.%f"),

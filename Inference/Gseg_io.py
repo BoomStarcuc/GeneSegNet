@@ -19,9 +19,9 @@ except:
 io_logger = logging.getLogger(__name__)
 
 def logger_setup():
-    cp_dir = pathlib.Path.home().joinpath('.GeneSegNet')
+    cp_dir = pathlib.Path.home().joinpath('.GeneSegNet_inference')
     cp_dir.mkdir(exist_ok=True)
-    log_file = cp_dir.joinpath('GeneSegNet.log')
+    log_file = cp_dir.joinpath('GeneSegNet_inference.log')
     try:
         log_file.unlink()
     except:
@@ -54,7 +54,7 @@ def outlines_to_text(base, outlines):
             f.write(xy_str)
             f.write('\n')
 
-def imread(filename, img_type):
+def imread(filename, img_type, chan = 2):
     ext = os.path.splitext(filename)[-1]
     if ext == '.tif' or ext =='.tiff':
         with tifffile.TiffFile(filename) as tif:
@@ -82,12 +82,14 @@ def imread(filename, img_type):
     elif ext != '.npy':
         try:
             if img_type == 'image':
-                img = cv2.imread(filename)
-                img = img[:,:,0]
+                if chan == 2:
+                    img = cv2.imread(filename, 0)[..., None]
+                else:
+                    img = cv2.imread(filename)   
             elif img_type == 'label':
                 img = cv2.imread(filename, -1)
             else:
-                img = cv2.imread(filename, 0)
+                img = cv2.imread(filename, 0)[..., None]
             
             return img
         except Exception as e:
@@ -133,16 +135,13 @@ def get_label_files(folder, N, mask_filter='_label', foldername = 'newlabels'):
     if N == 1 and os.path.exists(label_path):
         shutil.rmtree(label_path)
     
-    # print("@@@@@@@@@@@@@@@@@@label_path@@@@@@@@@@@@@@@@@@@@@@@", label_path)
     if not os.path.exists(label_path) or N == 0:
-        print("#################enter label @@@@@@@@@@@@@@@@@@@@@@@@@")
         label_names.extend(glob.glob(os.path.join(folder, "labels") + '/*%s.png'%mask_filter))
         label_names.extend(glob.glob(os.path.join(folder, "labels") + '/*%s.jpg'%mask_filter))
         label_names.extend(glob.glob(os.path.join(folder, "labels") + '/*%s.jpeg'%mask_filter))
         label_names.extend(glob.glob(os.path.join(folder, "labels") + '/*%s.tif'%mask_filter))
         label_names.extend(glob.glob(os.path.join(folder, "labels") + '/*%s.tiff'%mask_filter))
     else:
-        print("#################enter output @@@@@@@@@@@@@@@@@@@@@@@@@")
         label_names.extend(glob.glob(label_path + '/*%s.png'%mask_filter))
         label_names.extend(glob.glob(label_path + '/*%s.jpg'%mask_filter))
         label_names.extend(glob.glob(label_path + '/*%s.jpeg'%mask_filter))
@@ -185,7 +184,7 @@ def get_spot_files(dir):
 
     return spot_names
 
-def load_images_labels_heatmap_spot(dir, N, mask_filter='_masks', image_filter='_label', heatmap_filter='_gaumap_all', foldername = 'newlabels'):
+def load_images_labels_heatmap_spot(dir, N, args, mask_filter='_masks', image_filter='_label', heatmap_filter='_gaumap_all', foldername = 'newlabels'):
     image_names = get_image_files(dir, image_filter)
     label_names, flow_names = get_label_files(dir, N, mask_filter, foldername)
     heatmap_names = get_heatmap_files(dir, heatmap_filter)
@@ -204,7 +203,7 @@ def load_images_labels_heatmap_spot(dir, N, mask_filter='_masks', image_filter='
     spots = []
     k = 0
     for n in range(nimg):
-        image = imread(image_names[n], 'image')
+        image = imread(image_names[n], 'image', args.chan)
         label = imread(label_names[n], 'label')
         heatmap = imread(heatmap_names[n], 'heatmap')
 
@@ -236,7 +235,7 @@ def load_images_labels_heatmap_spot(dir, N, mask_filter='_masks', image_filter='
     io_logger.info(f'{k} / {nimg} images in {dir} folder have labels')
     return images, labels, heatmaps, spots, label_names
 
-def load_train_test_data(train_dir, N, test_dir=None, image_filter='_image', mask_filter='_label', heatmap_filter='_gaumap_all', foldername = 'newlabels'):
+def load_train_test_data(train_dir, N, args, test_dir=None, image_filter='_image', mask_filter='_label', heatmap_filter='_gaumap_all', foldername = 'newlabels'):
     train_dir_list = os.listdir(train_dir)
     train_subdir_list = []
     for each_train_dir in train_dir_list:
@@ -252,7 +251,7 @@ def load_train_test_data(train_dir, N, test_dir=None, image_filter='_image', mas
     label_names_list = []
     
     for each_train_dir in train_subdir_list:
-        images, labels, heatmaps, spots, label_names = load_images_labels_heatmap_spot(each_train_dir, N, mask_filter, 
+        images, labels, heatmaps, spots, label_names = load_images_labels_heatmap_spot(each_train_dir, N, args, mask_filter, 
                                                                             image_filter, heatmap_filter, 
                                                                             foldername)
         images_list.append(np.array(images))
@@ -283,9 +282,7 @@ def load_train_test_data(train_dir, N, test_dir=None, image_filter='_image', mas
         test_spots_list = []
         test_label_names_list = []
         for each_test_dir in test_subdir_list:
-            test_images, test_labels, test_heatmaps, test_spots, test_label_names = load_images_labels_heatmap_spot(each_test_dir, N, mask_filter, 
-                                                                                                    image_filter, heatmap_filter, 
-                                                                                                    foldername)
+            test_images, test_labels, test_heatmaps, test_spots, test_label_names = load_images_labels_heatmap_spot(each_test_dir, N, args, mask_filter, image_filter, heatmap_filter, foldername)
 
             test_images_list.append(np.array(test_images))
             test_labels_list.append(np.array(test_labels))
@@ -400,20 +397,6 @@ def save_masks(images, masks, flows, label, spot, file_names, png=True, tif=Fals
             im = Image.fromarray(masks)
             im_path = os.path.join(maskdir,basename[:-5] + 'label' + suffix + ext)
             im.save(im_path)
-
-            plt.imshow(masks)
-            plt.axis('off')
-            plt.savefig(os.path.join(maskdir,basename + '_cp_mask' + suffix + ext), bbox_inches='tight', pad_inches = 0 )
-
-            plt.imshow(flows[2])
-            plt.axis('off')
-            plt.savefig(os.path.join(maskdir,basename + '_confidencemap' + suffix + ext), bbox_inches='tight', pad_inches = 0 )
-            plt.clf()
-
-            plt.imshow(flows[3])
-            plt.axis('off')
-            plt.savefig(os.path.join(maskdir,basename + '_centermap' + suffix + ext), bbox_inches='tight', pad_inches = 0 )
-            plt.clf()
             
     if png and MATPLOTLIB:
         img = images.copy()

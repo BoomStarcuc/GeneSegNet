@@ -11,6 +11,7 @@ import csv
 import matplotlib.pyplot as plt
 from scipy.io import savemat, loadmat
 from PIL import Image
+from skimage import measure
     
 import logging
 
@@ -65,7 +66,7 @@ algorithm_args.add_argument('--stitch_threshold', required=False, default=0.0, t
 algorithm_args.add_argument('--fast_mode', action='store_true', help='now equivalent to --no_resample; make code run faster by turning off resampling')
 
 algorithm_args.add_argument('--flow_threshold', default=0.4, type=float, help='flow error threshold, 0 turns off this optional QC step. Default: %(default)s')
-algorithm_args.add_argument('--cellprob_threshold', default=0.8, type=float, help='cellprob threshold, default is 0, decrease to find more and larger masks')
+algorithm_args.add_argument('--confidence_threshold', default=0.0, type=float, help='cellprob threshold, default is 0, decrease to find more and larger masks')
 
 algorithm_args.add_argument('--anisotropy', required=False, default=1.0, type=float,
                     help='anisotropy of volume in 3D')
@@ -79,6 +80,7 @@ output_args.add_argument('--no_npy', action='store_true', help='suppress saving 
 output_args.add_argument('--savedir',
                     default=None, type=str, help='folder to which segmentation results will be saved (defaults to input image directory)')
 output_args.add_argument('--output_filename', default="newlabels", type=str, help='output filename') 
+output_args.add_argument('--output_visual', default="visresults", type=str, help='output visual results')  
 output_args.add_argument('--dir_above', action='store_true', help='save output folders adjacent to image folder instead of inside it (off by default)')
 output_args.add_argument('--in_folders', action='store_true', help='flag to save output in folders (off by default)')
 output_args.add_argument('--save_flows', action='store_true', help='whether or not to save RGB images of flows when masks are saved (disabled by default)')
@@ -95,11 +97,11 @@ training_args.add_argument('--train_size', action='store_true', help='train size
 training_args.add_argument('--diam_mean',
                     default=34., type=float, help='mean diameter to resize cells to during training -- if starting from pretrained models it cannot be changed from 30.0')
 training_args.add_argument('--learning_rate',
-                    default=0.1, type=float, help='learning rate. Default: %(default)s')
+                    default=0.001, type=float, help='learning rate. Default: %(default)s')
 training_args.add_argument('--weight_decay',
                     default=0.00001, type=float, help='weight decay. Default: %(default)s')
 training_args.add_argument('--n_epochs',
-                    default=300, type=int, help='number of epochs. Default: %(default)s')
+                    default=500, type=int, help='number of epochs. Default: %(default)s')
 training_args.add_argument('--batch_size',
                     default=8, type=int, help='batch size. Default: %(default)s')
 training_args.add_argument('--min_train_masks',
@@ -113,7 +115,6 @@ training_args.add_argument('--concatenation',
 training_args.add_argument('--save_every',
                     default=100, type=int, help='number of epochs to skip between saves. Default: %(default)s')
 training_args.add_argument('--save_each', action='store_true', help='save the model under a different filename per --save_every epoch for later comparsion')
-training_args.add_argument('--variance', type=int, default=3)
 
 # misc settings
 parser.add_argument('--verbose', action='store_true', help='show information about running and settings and save to log')
@@ -156,18 +157,18 @@ def test(args, logger, N):
                                     nchan=nchan)
     diameter = args.diameter
 
-    logger.info('>>>> compute IoU and save predicted results')
+    logger.info('>>>> save predicted results')
     assert len(images) == len(labels) == len(spots) == len(label_names)
     for image, label, spot, label_name in zip(images, labels, spots, label_names):
         if label.ndim != 2:
             label = label[0].astype(np.uint8)
-        
+
         out = model.eval(image, channels=channels, diameter=diameter,
                         do_3D=args.do_3D, net_avg=(not args.fast_mode or args.net_avg),
                         augment=False,
                         resample=(not args.no_resample and not args.fast_mode),
                         flow_threshold=args.flow_threshold,
-                        cellprob_threshold=args.cellprob_threshold,
+                        confidence_threshold=args.confidence_threshold,
                         stitch_threshold=args.stitch_threshold,
                         invert=args.invert,
                         batch_size=args.batch_size,
@@ -178,7 +179,7 @@ def test(args, logger, N):
                         anisotropy=args.anisotropy,
                         model_loaded=True)
         masks, flows = out[:2]
-
+        
         if len(out) > 3:
             diams = out[-1]
         else:
@@ -189,7 +190,7 @@ def test(args, logger, N):
             Gseg_io.masks_flows_to_seg(image[:,:,0], masks, flows, diams, label_name, channels)
         if saving_something:
             Gseg_io.save_masks(image[:,:,0], masks, flows, label, spot, label_name, png=args.save_png, tif=args.save_tif,
-                            foldername = args.output_filename, save_flows=args.save_flows,save_outlines=args.save_outlines,
+                            foldername = args.output_visual, save_flows=args.save_flows,save_outlines=args.save_outlines,
                             save_ncolor=args.save_ncolor,dir_above=args.dir_above,savedir=args.savedir,
                             save_txt=args.save_txt, in_folders=args.in_folders)
 
@@ -206,6 +207,6 @@ if __name__ == '__main__':
         logger = logging.getLogger(__name__)
 
     test(args, logger, 1)
-    logger.info('>>>> finsh training')
+    logger.info('>>>> finsh test')
 
     

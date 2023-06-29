@@ -1,4 +1,3 @@
-
 import os, sys, time, shutil, tempfile, datetime, pathlib, subprocess
 import numpy as np
 import torch
@@ -6,8 +5,6 @@ import torch.nn as nn
 from torch import optim
 import torch.nn.functional as F
 import datetime
-
-
 import transforms, Gseg_io, dynamics, utils
 
 sz = 3
@@ -153,7 +150,7 @@ class make_style(nn.Module):
 class upsample(nn.Module):
     def __init__(self, nbase, sz, residual_on=True, concatenation=False):
         super().__init__()
-        self.upsampling = nn.Upsample(scale_factor=2, mode='nearest')
+        self.upsampling = nn.Upsample(scale_factor=2, mode='bilinear')
         self.up = nn.Sequential()
         for n in range(1,len(nbase)):
             if residual_on:
