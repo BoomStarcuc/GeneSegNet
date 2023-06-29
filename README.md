@@ -36,7 +36,42 @@ pip install -r requirement.txt
 1. Download the demo datasets at [GoogleDrive](https://drive.google.com/drive/folders/1rF6U5fSq8D-UpZW-iUy4DG16dyxAzvK7?usp=share_link) and unzip them to your project directory.
 2. Download GeneSegNet pre-trained model at [GoogleDrive](https://drive.google.com/drive/folders/1hzavxQ_zkH6At0vkCzskyg7hlRnKDEC3?usp=sharing), and put it into your project directory.
 
-If you want to run the algorithm on your data , please see  **Training** part.
+If you want to run the algorithm on your data, please see  **Training** part.
+
+## Datasets Structure
+```
+your dataset
+ |-train
+ |   |-Image sample1
+ |   |   |-HeatMaps
+ |   |   |   |-HeatMap
+ |   |   |   |-HeatMap_all
+ |   |   |-images            
+ |   |   |-labels 
+ |   |   |-spots
+ |   |-Image sample2
+ |   |-...
+ |-val
+ |   |-Image sample1
+ |   |   |-HeatMaps
+ |   |   |   |-HeatMap
+ |   |   |   |-HeatMap_all
+ |   |   |-images            
+ |   |   |-labels 
+ |   |   |-spots
+ |   |-Image sample2
+ |   |-...
+ |-test
+ |   |-Image sample1
+ |   |   |-HeatMaps
+ |   |   |   |-HeatMap
+ |   |   |   |-HeatMap_all
+ |   |   |-images            
+ |   |   |-labels 
+ |   |   |-spots
+ |   |-Image sample2
+ |   |-...
+```
 
 ## Training from scratch
 To run the algorithm on your data, use:
