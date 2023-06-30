@@ -156,7 +156,7 @@ def sliding_window_inference(inputs, roi_size, sw_batch_size, predictor, spot, s
                 else:
                     print("Existed gaumap {}_gaumap.jpg".format(curr_index))
                     gaumap = cv2.imread("{}/{}_gaumap.jpg".format(saved_gaumap_path,curr_index) ,0)[np.newaxis, :, :]
-                    gaumap = torch.from_numpy(gaumap).cuda()
+                    gaumap = torch.from_numpy(gaumap).to(device)
                 
                 image_gaumap = torch.cat([im, gaumap], dim=0) #[4,256,256]
                 input_slices.append(image_gaumap) 
@@ -190,8 +190,8 @@ def sliding_window_inference(inputs, roi_size, sw_batch_size, predictor, spot, s
                                     anisotropy=1.0,
                                     model_loaded=True)  # batched patch segmentation
             masks, flows = seg_prob[:2] # flows: [plot.dx_to_circ(dP), dP, cellprob, p]
-            dP_list.append(torch.from_numpy(flows[1]).cuda())
-            cellprob_list.append(torch.from_numpy(flows[2]).unsqueeze(0).cuda())
+            dP_list.append(torch.from_numpy(flows[1]).to(device))
+            cellprob_list.append(torch.from_numpy(flows[2]).unsqueeze(0).to(device))
         
         output_dP.append(torch.stack(dP_list)) #[N, 10, 2, 256, 256]
         output_cellprob.append(torch.stack(cellprob_list)) #[N, 10, 1, 256, 256]
@@ -244,21 +244,27 @@ def _get_scan_interval(image_size, roi_size, num_spatial_dims):
             scan_interval[i] = int(max(roi_size[i] - 16, roi_size[i] * 0.75))
     return tuple(scan_interval) #(240,240)
 
-def load_data_and_model(root_dir, save_dir, model_name, sigma):
-    dapi_image_file = natsorted(glob.glob(os.path.join(os.path.join(root_dir, 'image'), '*.png')))
+def load_data_and_model(root_dir, save_dir, model_path, sigma):
+    dapi_image_file = natsorted(glob.glob(os.path.join(os.path.join(root_dir, 'image'), '*.jpg')))
     dapi_label_file = natsorted(glob.glob(os.path.join(os.path.join(root_dir, 'label'), '*.png')))
     dapi_spots_file = natsorted(glob.glob(os.path.join(os.path.join(root_dir, 'spot'), '*.csv')))
 
-    model_file = os.path.join(root_dir, model_name)
-    # print("dapi_image_file:", len(dapi_image_file))
-    # print("dapi_label_file:", len(dapi_label_file))
-    # print("dapi_spots_file:", len(dapi_spots_file))
+    model_file = model_path
+    print("dapi_image_file:", len(dapi_image_file))
+    print("dapi_label_file:", len(dapi_label_file))
+    print("dapi_spots_file:", len(dapi_spots_file))
     # print("model_file:", model_file)
 
     assert len(dapi_image_file) == len(dapi_label_file) == len(dapi_spots_file)
     #load model
     gpu = True
-    device = torch.device('cuda:0')
+    if torch.cuda.is_available():
+        device = torch.device('cuda:0')
+        print("Using GPU")
+    else:
+        device = torch.device('cpu')
+        print("Using CPU")
+    
     pretrained_model = model_file
     model_type = None
     szmean = 34.0
@@ -295,7 +301,7 @@ def load_data_and_model(root_dir, save_dir, model_name, sigma):
         spot_list = []
         for line in lines:
             splits = line.split(',')
-            spot_list.append([int(float(splits[0])), int(float(splits[1]))])
+            spot_list.append([int(float(splits[1])), int(float(splits[2]))])
         
         spot = np.array(spot_list)
 
@@ -307,7 +313,7 @@ def load_data_and_model(root_dir, save_dir, model_name, sigma):
         
         outputs = dynamics.compute_masks(offset.squeeze().cpu().numpy(), confidence.squeeze().cpu().numpy(), niter=200, confidence_threshold=0.0,
                                                          flow_threshold=0.4, interp=True, resize=None,
-                                                         use_gpu=True, device='cuda:0')
+                                                         use_gpu=True, device=device)
         wholemask = outputs[0]
 
         kernel = np.ones((5,5), np.uint8)
@@ -327,11 +333,11 @@ def load_data_and_model(root_dir, save_dir, model_name, sigma):
 
 if __name__ == '__main__':
     # load inputs
-    root_dir = '/data/inference'
-    save_dir = '../results'
-    model_name = 'pre-trained model filename and put the model into the root_dir directory'
+    root_dir = 'add your data directory'
+    save_dir = 'add a directory to save results'
+    model_path = 'add pre-trained model path'
     sigma = 7  #variance parameter, e.g. 7,9
 
     logger, log_file = logger_setup()
-    load_data_and_model(root_dir, save_dir, model_name, sigma)
+    load_data_and_model(root_dir, save_dir, model_path, sigma)
 
