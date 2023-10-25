@@ -78,7 +78,7 @@ If you use the demo dataset we provided, you can skip this section. But if you w
 ```
 python Generate_Image_Label_locationMap.py
 ```
-You need to modify two lines ```base_dir``` and ```save_crop_dir```. For the preprocessing input format, please see our raw simulation datasets  [GoogleDrive](https://drive.google.com/drive/folders/17Xj4XH9zs2zJradk2-ZzHNNBFdTOwWrM?usp=drive_link)
+Note: ```base_dir``` and ```save_crop_dir``` need to be modified to your corresponding path. For the directory structure for data preprocessing, please see our raw simulation datasets at [GoogleDrive](https://drive.google.com/drive/folders/17Xj4XH9zs2zJradk2-ZzHNNBFdTOwWrM?usp=drive_link).
 
 ## Training from scratch
 To run the algorithm on your data, use:
@@ -124,12 +124,12 @@ python GeneSeg_test.py --use_gpu --test_dir test dataset path --pretrained_model
 ```
 
 ## Network Inference
-To obtain final full-resolution segmentation results, use slidingwindows_gradient.py in Inference directory:
+To obtain final full-resolution segmentation results, use slidingwindows_gradient.py in ```Inference``` directory:
 
 ```
 python slidingwindows_gradient.py
 ```
 
-Note: root_dir, save_dir, and model_file need to be modified to your corresponding path.
+Note: ```root_dir```, ```save_dir```, and ```model_file``` need to be modified to your corresponding path.
 
 
