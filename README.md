@@ -72,6 +72,8 @@ your dataset
  |   |-Image sample2
  |   |-...
 ```
+## Data preprocess
+
 
 ## Training from scratch
 To run the algorithm on your data, use:
