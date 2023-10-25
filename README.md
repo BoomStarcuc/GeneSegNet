@@ -73,7 +73,12 @@ your dataset
  |   |-...
 ```
 ## Data preprocess
+If you use the demo dataset we provided, you can skip this section. But if you want to train on your own dataset, you first need to run the preprocessing code to satisfy the dataset structure during training.
 
+```
+python Generate_Image_Label_locationMap.py
+```
+You need to modify two lines ```base_dir``` and ```save_crop_dir```. For the preprocessing input format, please see our raw simulation datasets  [GoogleDrive](https://drive.google.com/drive/folders/17Xj4XH9zs2zJradk2-ZzHNNBFdTOwWrM?usp=drive_link)
 
 ## Training from scratch
 To run the algorithm on your data, use:
