@@ -1,4 +1,4 @@
-# GeneSegNet: A Deep Learning Framework for Cell Segmentation by Integrating Gene Expression and Imaging Information. [Genome Biology](https://link.springer.com/article/10.1186/s13059-023-03054-0?utm_source=rct_congratemailt&utm_medium=email&utm_campaign=oa_20231019&utm_content=10.1186/s13059-023-03054-0#availability-of-data-and-materials)
+# GeneSegNet: a deep learning framework for cell segmentation by integrating gene expression and imaging. [Genome Biology](https://link.springer.com/article/10.1186/s13059-023-03054-0?utm_source=rct_congratemailt&utm_medium=email&utm_campaign=oa_20231019&utm_content=10.1186/s13059-023-03054-0#availability-of-data-and-materials)
 
 ## Overview
 <div align=center><img src="https://github.com/BoomStarcuc/GeneSegNet/blob/master/data/GeneSegNet_framework.png" width="1000" height="360"/></div>
