@@ -38,6 +38,7 @@ pip install -r requirement.txt
 
 
 ## Data preprocess
+
 <h3 id="input-1">Input</h3>
 Directory structure of initial input data, see hippocampus demo datasets at [GoogleDrive](https://drive.google.com/drive/folders/1TPzSePAuSebq3HAUXtAhHb8OcG0l_i0B?usp=sharing).
 ```
@@ -87,6 +88,7 @@ Note: ```base_dir``` and ```save_crop_dir``` need to be modified to your corresp
 
 
 ## Training from scratch
+
 <h3 id="input-12">Input</h3>
 You will need to split the output of the preprocessing step into training, validation, and test sets in reasonable proportions. The structure of the dataset should be as follows:
 ```
