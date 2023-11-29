@@ -202,6 +202,7 @@ Note: if you want to run a pre-trained model, you should download the pre-traine
 ## Network Inference
 
 <h3 id="input-4">Input</h3>
+
 The input of the network inference is your raw datasets. See hippocampus demo datasets at [GoogleDrive](https://drive.google.com/drive/folders/1TPzSePAuSebq3HAUXtAhHb8OcG0l_i0B?usp=sharing).
 ```
 your raw dataset
