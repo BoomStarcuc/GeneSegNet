@@ -333,13 +333,10 @@ def load_data_and_model(root_dir, save_dir, model_path, sigma):
     
 
 if __name__ == '__main__':
-    # load inputs
-    # root_dir = 'add your data directory'
-    # save_dir = 'add a directory to save results'
-    # model_path = 'add pre-trained model path'
-    root_dir = 'D:/medicalproject/code/rebuttal_submit_code/preprocessing_testdata'
-    save_dir = 'D:/medicalproject/code/rebuttal_submit_code/inference_results'
-    model_path = 'D:/medicalproject/code/rebuttal_submit_code/models/GeneSegNet_hippocampus_residual_on_style_on_concatenation_off.929131_epoch_499'
+    load inputs
+    root_dir = 'add your data directory'
+    save_dir = 'add a directory to save results'
+    model_path = 'add pre-trained model path'
     sigma = 7  #variance parameter, e.g. 7,9
 
     logger, log_file = logger_setup()
