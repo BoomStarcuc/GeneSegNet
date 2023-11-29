@@ -42,7 +42,7 @@ If you want to run the algorithm on your data, please see  **Training** part.
 
 
 ## Data preprocess
-<h3 id="code-run-1">### Code run</h3>
+<h3 id="input-1">Input</h3>
 Directory structure of initial input data, see hippocampus demo datasets at [GoogleDrive](https://drive.google.com/drive/folders/1TPzSePAuSebq3HAUXtAhHb8OcG0l_i0B?usp=sharing).
 ```
 your raw dataset
@@ -60,7 +60,7 @@ your raw dataset
  |   |-...
 ```
 
-### Output
+<h3 id="output-1">Output</h3>
 After preprocessing, you will output a dataset without splitting into training, validation and testing, as follows：
 ```
    your raw dataset
@@ -81,7 +81,7 @@ After preprocessing, you will output a dataset without splitting into training, 
     |-...
    ```
 
-### Code run
+<h3 id="code-run-1">Code run</h3>
 If you use the demo training dataset we provided, you can skip this section. But if you want to train on your own dataset, you first need to run the preprocessing code to satisfy the dataset structure during training.
 
 ```
@@ -91,7 +91,7 @@ Note: ```base_dir``` and ```save_crop_dir``` need to be modified to your corresp
 
 
 ## Training from scratch
-### Input
+<h3 id="input-12">Input</h3>
 You will need to split the output of the preprocessing step into training, validation, and test sets in reasonable proportions. The structure of the dataset should be as follows:
 ```
 your dataset
@@ -126,11 +126,11 @@ your dataset
  |   |-sample 6
  |   |-...
 ```
-Then you can start to train your model using 
+Then you can start to train your model using [command](#code-run-2)
 
-### Output
+<h3 id="output-2">Output</h3>
 
-### Code run
+<h3 id="code-run-2">Code run</h3>
 To run the algorithm on your data, use:
 
 ```
