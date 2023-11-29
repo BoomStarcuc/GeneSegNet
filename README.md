@@ -204,6 +204,7 @@ Note: if you want to run a pre-trained model, you should download the pre-traine
 <h3 id="input-4">Input</h3>
 
 The input of the network inference is your raw datasets. See hippocampus demo datasets at [GoogleDrive](https://drive.google.com/drive/folders/1TPzSePAuSebq3HAUXtAhHb8OcG0l_i0B?usp=sharing).
+
 ```
 your raw dataset
  |-images
@@ -222,7 +223,7 @@ your raw dataset
 
 <h3 id="output-4">Output</h3>
 
-The output of the network inference includes four files as follows:
+The output of the network inference includes four files of each sample as follows:
 ```
 |-HeatMap
 |   |-sample 1
