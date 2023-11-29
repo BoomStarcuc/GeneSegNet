@@ -40,6 +40,7 @@ pip install -r requirement.txt
 ## Data preprocess
 
 <h3 id="input-1">Input</h3>
+
 Directory structure of initial input data, see hippocampus demo datasets at [GoogleDrive](https://drive.google.com/drive/folders/1TPzSePAuSebq3HAUXtAhHb8OcG0l_i0B?usp=sharing).
 ```
 your raw dataset
@@ -58,6 +59,7 @@ your raw dataset
 ```
 
 <h3 id="output-1">Output</h3>
+
 After preprocessing, you will output a dataset without splitting into training, validation and testing, as follows：
 ```
 your preprocessed dataset
@@ -79,6 +81,7 @@ your preprocessed dataset
 ```
 
 <h3 id="code-run-1">Code run</h3>
+
 If you use the demo training dataset we provided, you can skip this section. But if you want to train on your own dataset, you first need to run the preprocessing code to satisfy the dataset structure during training.
 
 ```
