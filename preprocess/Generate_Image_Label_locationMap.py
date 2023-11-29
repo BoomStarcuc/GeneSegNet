@@ -54,7 +54,7 @@ def filter_spots(label, genes_spot):
         gene_mask = label[ys,xs]!=0
         filtered_genes = genes_spot[gene_mask]
     else:
-        print("The number of genes is 0")
+        # print("The number of genes is 0")
         filtered_genes = np.array([])
     
     return filtered_genes
@@ -102,120 +102,125 @@ def gen_single_gaussian_map(center, h, w, sigma, device):
     return gaussian_map
 
 def main(root_image_dir, root_seg_dir, root_spot_dir, save_dir):
-    saved_image_path = os.path.join(save_dir, 'images')
-    print("saved_image_path:", saved_image_path)
-    if not os.path.exists(saved_image_path):
-        os.makedirs(saved_image_path)
-
-    saved_label_path = os.path.join(save_dir, 'labels')
-    print("saved_label_path:", saved_label_path)
-    if not os.path.exists(saved_label_path):
-        os.makedirs(saved_label_path)
-
-    saved_spot_path = os.path.join(save_dir, 'spots')
-    print("saved_spot_path:", saved_spot_path)
-    if not os.path.exists(saved_spot_path):
-        os.makedirs(saved_spot_path)
-
-    saved_gaumap_path = os.path.join(save_dir, 'GauMaps')
-    print("saved_gaumap_path:", saved_gaumap_path)
-    if not os.path.exists(saved_gaumap_path):
-        os.makedirs(saved_gaumap_path)
-    
-    gaumap_path = os.path.join(saved_gaumap_path, 'GauMap')
-    gaumap_all_path = os.path.join(saved_gaumap_path, 'GauMap_all')
-    if not os.path.exists(gaumap_path):
-        os.makedirs(gaumap_path)
-    if not os.path.exists(gaumap_all_path):
-        os.makedirs(gaumap_all_path)
-
-    image_files = natsorted(glob.glob(os.path.join(root_image_dir, '*.png')))
+    image_files = natsorted(glob.glob(os.path.join(root_image_dir, '*.jpg'))) #Modify '.jpg' according to the suffix name of your data
     label_files = natsorted(glob.glob(os.path.join(root_seg_dir, '*.png')))
     spot_files = natsorted(glob.glob(os.path.join(root_spot_dir,'*.csv')))
 
-    image_files = image_files*50
-    label_files = label_files*50
-    spot_files = spot_files*50
-
-    print("len(image_files):", len(image_files))
-    print("len(label_files):", len(label_files))
-    print("len(spot_files):", len(spot_files))
-
+    print("the number of images, labels, and spots:", len(image_files), len(label_files), len(spot_files))
     assert len(image_files) == len(label_files) == len(spot_files)
 
-    random.seed(1)
-    for index, (imagefile, labelfile, spot_file) in enumerate(zip(image_files[:], label_files[:], spot_files[:])):
-        filename = os.path.basename(imagefile)[:-4]
-        labelname = os.path.basename(labelfile)[:-4]
-        spotsname = os.path.basename(spot_file)[:-4]
+    for index, (imagefile, labelfile, spot_file) in enumerate(zip(image_files, label_files, spot_files)):
+        foldername = os.path.splitext(os.path.basename(imagefile))[0]
+        print(foldername)
+        save_subdir = os.path.join(save_dir, foldername)
+        print("save_subdir:", save_subdir)
 
-        with open(spot_file, 'r') as f:
-            lines = f.readlines()
-            lines = lines[1:]
+        saved_image_path = os.path.join(save_subdir, 'images')
+        print("saved_image_path:", saved_image_path)
+        if not os.path.exists(saved_image_path):
+            os.makedirs(saved_image_path)
 
-        spot_list = []
-        for line in lines:
-            splits = line.strip().split(',')
-            spot_list.append([int(float(splits[0])), int(float(splits[1])), splits[2]])
+        saved_label_path = os.path.join(save_subdir, 'labels')
+        print("saved_label_path:", saved_label_path)
+        if not os.path.exists(saved_label_path):
+            os.makedirs(saved_label_path)
+
+        saved_spot_path = os.path.join(save_subdir, 'spots')
+        print("saved_spot_path:", saved_spot_path)
+        if not os.path.exists(saved_spot_path):
+            os.makedirs(saved_spot_path)
+
+        saved_gaumap_path = os.path.join(save_subdir, 'HeatMaps')
+        print("saved_gaumap_path:", saved_gaumap_path)
+        if not os.path.exists(saved_gaumap_path):
+            os.makedirs(saved_gaumap_path)
+        
+        gaumap_path = os.path.join(saved_gaumap_path, 'HeatMap')
+        gaumap_all_path = os.path.join(saved_gaumap_path, 'HeatMap_all')
+        if not os.path.exists(gaumap_path):
+            os.makedirs(gaumap_path)
+        if not os.path.exists(gaumap_all_path):
+            os.makedirs(gaumap_all_path)
+
+        imagefiles = [imagefile]*100
+        labelfiles = [labelfile]*100
+        spotfiles = [spot_file]*100
+
+        assert len(imagefiles) == len(labelfiles) == len(spotfiles)
+
+        random.seed(1)
+        for index, (imagefile, labelfile, spot_file) in enumerate(zip(imagefiles, labelfiles, spotfiles)):
+            filename = os.path.basename(imagefile)[:-4]
+            labelname = os.path.basename(labelfile)[:-4]
+            spotsname = os.path.basename(spot_file)[:-4]
+
+            with open(spot_file, 'r') as f:
+                lines = f.readlines()
+                lines = lines[1:]
+
+            spot_list = []
+            for line in lines:
+                splits = line.strip().split(',')
+                spot_list.append([int(float(splits[0])), int(float(splits[1])), splits[2]])
+                
+            spot = np.array(spot_list)
             
-        spot = np.array(spot_list)
-        
-        im = cv2.imread(imagefile)
-        label = cv2.imread(labelfile, -1)
+            im = cv2.imread(imagefile)
+            label = cv2.imread(labelfile, -1)
 
-        img_h, img_w, _ = im.shape
-        h_off = random.randint(0, img_h - 256)
-        w_off = random.randint(0, img_w - 256)
-        
-        im = im[h_off: h_off + 256, w_off: w_off + 256]
-        label = label[h_off: h_off + 256, w_off: w_off + 256]
+            img_h, img_w, _ = im.shape
+            h_off = random.randint(0, img_h - 256)
+            w_off = random.randint(0, img_w - 256)
+            
+            im = im[h_off: h_off + 256, w_off: w_off + 256]
+            label = label[h_off: h_off + 256, w_off: w_off + 256]
 
-        minx = w_off
-        maxx = w_off + 256
-        miny = h_off
-        maxy = h_off + 256
+            minx = w_off
+            maxx = w_off + 256
+            miny = h_off
+            maxy = h_off + 256
 
-        crop_spot_list = []
-        for x, y, gene in spot:
-            x = int(float(x))
-            y = int(float(y))
-            if x >= minx and x < maxx and y >= miny and y < maxy:
-                crop_spot_list.append([x-minx, y-miny, gene])
+            crop_spot_list = []
+            for x, y, gene in spot:
+                x = int(float(x))
+                y = int(float(y))
+                if x >= minx and x < maxx and y >= miny and y < maxy:
+                    crop_spot_list.append([x-minx, y-miny, gene])
 
-        spot = np.array(crop_spot_list)
-        spot_in_cell = filter_spots(label, spot)
+            spot = np.array(crop_spot_list)
+            spot_in_cell = filter_spots(label, spot)
 
-        device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
-        gaumap_all = torch.zeros(label.shape[0], label.shape[1]).to(device)
-        if len(spot) != 0:
-            spot_tensor = torch.from_numpy(spot[:, :2].astype(np.int64)).to(device)
-            gaumap_all = gen_pose_target(spot_tensor, device, label.shape[0], label.shape[1], 7)
+            device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
+            gaumap_all = torch.zeros(label.shape[0], label.shape[1]).to(device)
+            if len(spot) != 0:
+                spot_tensor = torch.from_numpy(spot[:, :2].astype(np.int64)).to(device)
+                gaumap_all = gen_pose_target(spot_tensor, device, label.shape[0], label.shape[1], 7)
 
-        gaumap = torch.zeros(label.shape[0], label.shape[1]).to(device)
-        if len(spot_in_cell) != 0:    
-            spot_in_cell_tensor = torch.from_numpy(spot_in_cell[:, :2].astype(np.int64)).to(device)
-            gaumap = gen_pose_target(spot_in_cell_tensor, device, label.shape[0], label.shape[1], 7)
-        
-        cv2.imwrite("{}/{}_gaumap_all.jpg".format(gaumap_all_path, index), gaumap_all.cpu().numpy()*255)
-        cv2.imwrite("{}/{}_gaumap.jpg".format(gaumap_path, index), gaumap.cpu().numpy()*255)
+            gaumap = torch.zeros(label.shape[0], label.shape[1]).to(device)
+            if len(spot_in_cell) != 0:    
+                spot_in_cell_tensor = torch.from_numpy(spot_in_cell[:, :2].astype(np.int64)).to(device)
+                gaumap = gen_pose_target(spot_in_cell_tensor, device, label.shape[0], label.shape[1], 7)
+            
+            cv2.imwrite("{}/{}_gaumap_all.jpg".format(gaumap_all_path, index), gaumap_all.cpu().numpy()*255)
+            cv2.imwrite("{}/{}_gaumap.jpg".format(gaumap_path, index), gaumap.cpu().numpy()*255)
 
-        cv2.imwrite("{}/{}_image.jpg".format(saved_image_path, index), im)
+            cv2.imwrite("{}/{}_image.jpg".format(saved_image_path, index), im)
 
-        label = Image.fromarray(label)
-        lbl_path = "{}/{}_label.png".format(saved_label_path,index)
-        label.save(lbl_path)
+            label = Image.fromarray(label)
+            lbl_path = "{}/{}_label.png".format(saved_label_path,index)
+            label.save(lbl_path)
 
-        with open( '{}/{}_spot.csv'.format(saved_spot_path, index), 'w', newline='') as csvfile:
-            writer = csv.writer(csvfile)
-            writer.writerow(['spotX','spotY', 'gene'])
-            writer.writerows(spot)
+            with open( '{}/{}_spot.csv'.format(saved_spot_path, index), 'w', newline='') as csvfile:
+                writer = csv.writer(csvfile)
+                writer.writerow(['spotX','spotY', 'gene'])
+                writer.writerows(spot)
 
 if __name__ == '__main__':
 
     base_dir = "add your data path"
     root_image_dir = "{}/images/".format(base_dir)
     root_seg_dir = "{}/labels/".format(base_dir)
-    root_spot_dir = "{}/transcripts/".format(base_dir)
+    root_spot_dir = "{}/spots/".format(base_dir)
     save_crop_dir = "add your path to save results"
 
     main(root_image_dir, root_seg_dir, root_spot_dir, save_crop_dir)
