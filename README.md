@@ -93,6 +93,7 @@ Note: ```base_dir``` and ```save_crop_dir``` need to be modified to your corresp
 ## Training from scratch
 
 <h3 id="input-12">Input</h3>
+
 You will need to split the output of the preprocessing step into training, validation, and test sets in reasonable proportions. The structure of the dataset should be as follows:
 ```
 your dataset
@@ -127,11 +128,12 @@ your dataset
  |   |-sample 6
  |   |-...
 ```
-Then you can start to train your model using .
+Then you can start to train your model using [command](#code-run-2).
 
 <h3 id="output-2">Output</h3>
 
 <h3 id="code-run-2">Code run</h3>
+
 To run the algorithm on your data, use:
 
 ```
