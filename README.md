@@ -33,7 +33,7 @@ pip install -r requirement.txt
 
 ## Datasets and Model
 
-1. Download the demo datasets at [GoogleDrive](https://drive.google.com/drive/folders/1rF6U5fSq8D-UpZW-iUy4DG16dyxAzvK7?usp=share_link) and unzip them to your project directory.
+1. Download the demo training datasets at [GoogleDrive](https://drive.google.com/drive/folders/1rF6U5fSq8D-UpZW-iUy4DG16dyxAzvK7?usp=share_link) and unzip them to your project directory.
 2. Download GeneSegNet pre-trained model at [GoogleDrive](https://drive.google.com/drive/folders/1hzavxQ_zkH6At0vkCzskyg7hlRnKDEC3?usp=sharing), and put it into your project directory.
 
 
@@ -80,6 +80,8 @@ your preprocessed dataset
  |-...
 ```
 
+Please see preprocessed hippocampus demo datasets at [GoogleDrive](https://drive.google.com/drive/folders/1n0cFQAcqGL3_wfGQtNLO_st7JQZEyd6h?usp=sharing).
+
 <h3 id="code-run-1">Code run</h3>
 
 If you use the demo training dataset we provided, you can skip this section. But if you want to train on your own dataset, you first need to run the preprocessing code to satisfy the dataset structure during training.
@@ -92,7 +94,7 @@ Note: ```base_dir``` and ```save_crop_dir``` need to be modified to your corresp
 
 ## Training from scratch
 
-<h3 id="input-12">Input</h3>
+<h3 id="input-2">Input</h3>
 
 You will need to split the output of the preprocessing step into training, validation, and test sets in reasonable proportions. The structure of the dataset should be as follows:
 ```
@@ -129,11 +131,11 @@ your split dataset
  |   |-...
 ```
 
-Then you can start to train your model using [command](#code-run-2).
+Please see the demo training dataset at [GoogleDrive](https://drive.google.com/drive/folders/1rF6U5fSq8D-UpZW-iUy4DG16dyxAzvK7?usp=share_link). Then you can start to train your model using [command](#code-run-2). 
 
 <h3 id="output-2">Output</h3>
 
-After training is completed, the algorithm will save the trained model to your specified path.
+After training, the algorithm will save the trained model to your specified path.
 
 <h3 id="code-run-2">Code run</h3>
 
@@ -164,20 +166,38 @@ To see the full list of command-line options run:
 python GeneSeg_train.py --help
 ```
 
-## Test
+## Test and run a pre-trained model
 
-After training, to run the test, use:
+<h3 id="input-3">Input</h3>
+
+The input is your test dataset.
+```
+your test dataset
+ |-test
+ |   |-sample 5
+ |   |   |-HeatMaps
+ |   |   |   |-HeatMap
+ |   |   |   |-HeatMap_all
+ |   |   |-images            
+ |   |   |-labels 
+ |   |   |-spots
+ |   |-sample 6
+ |   |-...
+```
+
+<h3 id="output-3">Output</h3>
+
+The output will include the following two images: 1) the predicted cell instance masks; 2) the cell boundary comparison plot between predicted results and training labels.
+
+<h3 id="code-run-3">Code run</h3>
+
+To run the test or a pre-trained model, use:
 
 ```
 python GeneSeg_test.py --use_gpu --test_dir test dataset path --pretrained_model your trained model --save_png --img_filter _image --mask_filter _label --all_channels --metrics --dir_above --output_filename a folder name
 ```
 
-## Run a pre-trained model
-Before running the pre-trained model, please download the pre-trained model provided. 
-
-```
-python GeneSeg_test.py --use_gpu --test_dir test dataset path --pretrained_model pre-trained model --save_png --img_filter _image --mask_filter _label --all_channels --metrics --dir_above --output_filename a folder name
-```
+Note: if you want to run a pre-trained model, you should download the pre-trained model provided first. 
 
 ## Network Inference
 To obtain final full-resolution segmentation results, use slidingwindows_gradient.py in ```Inference``` directory:
