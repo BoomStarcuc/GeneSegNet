@@ -96,7 +96,7 @@ Note: ```base_dir``` and ```save_crop_dir``` need to be modified to your corresp
 
 You will need to split the output of the preprocessing step into training, validation, and test sets in reasonable proportions. The structure of the dataset should be as follows:
 ```
-your dataset
+your split dataset
  |-train
  |   |-sample 1
  |   |   |-HeatMaps
@@ -128,6 +128,7 @@ your dataset
  |   |-sample 6
  |   |-...
 ```
+
 Then you can start to train your model using [command](#code-run-2).
 
 <h3 id="output-2">Output</h3>
