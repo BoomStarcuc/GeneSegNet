@@ -84,7 +84,7 @@ Please see preprocessed hippocampus demo datasets at [GoogleDrive](https://drive
 
 <h3 id="code-run-1">Code run</h3>
 
-If you use the demo training dataset we provided, you can skip this section. But if you want to train on your own dataset, you first need to run the preprocessing code to satisfy the dataset structure during training.
+If you use the demo training dataset we provided, you can skip this section. But if you want to train on your own dataset, you first need to run the preprocessing code in ```preprocess``` directory to satisfy the dataset structure during training.
 
 ```
 python Generate_Image_Label_locationMap.py
