@@ -41,7 +41,7 @@ pip install -r requirement.txt
 
 <h3 id="input-1">Input</h3>
 
-Directory structure of initial input data, see hippocampus demo datasets at [GoogleDrive](https://drive.google.com/drive/folders/1TPzSePAuSebq3HAUXtAhHb8OcG0l_i0B?usp=sharing).
+Directory structure of initial input data. See hippocampus demo datasets at [GoogleDrive](https://drive.google.com/drive/folders/1TPzSePAuSebq3HAUXtAhHb8OcG0l_i0B?usp=sharing).
 ```
 your raw dataset
  |-images
@@ -200,12 +200,50 @@ python GeneSeg_test.py --use_gpu --test_dir test dataset path --pretrained_model
 Note: if you want to run a pre-trained model, you should download the pre-trained model provided first. 
 
 ## Network Inference
+
+<h3 id="input-4">Input</h3>
+The input of the network inference is your raw datasets. See hippocampus demo datasets at [GoogleDrive](https://drive.google.com/drive/folders/1TPzSePAuSebq3HAUXtAhHb8OcG0l_i0B?usp=sharing).
+```
+your raw dataset
+ |-images
+ |   |-image sample 1
+ |   |-image sample 2
+ |   |-...
+ |-labels
+ |   |-label sample 1
+ |   |-label sample 2
+ |   |-...
+ |-spots
+ |   |-spot sample 1
+ |   |-spot sample 2
+ |   |-...
+```
+
+<h3 id="output-4">Output</h3>
+
+The output of the network inference includes four files as follows:
+```
+|-HeatMap
+|   |-sample 1
+|   |-sample 2
+|- predicted full-resolution .mat file for sample 1
+|- predicted full-resolution .png file for sample 1
+|- predicted full-resolution .jpg file for sample 1
+|- predicted full-resolution .mat file for sample 2
+|- predicted full-resolution .png file for sample 2
+|- predicted full-resolution .jpg file for sample 2
+|-...
+```
+
+<h3 id="code-run-4">Code run</h3>
+
 To obtain final full-resolution segmentation results, use slidingwindows_gradient.py in ```Inference``` directory:
 
 ```
 python slidingwindows_gradient.py
 ```
 Note: ```root_dir```, ```save_dir```, and ```model_file``` need to be modified to your corresponding path.
+
 
 ## Citation
 If you find our work useful for your research, please consider citing the following paper.
