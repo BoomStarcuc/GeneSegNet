@@ -63,23 +63,23 @@ your raw dataset
 <h3 id="output-1">Output</h3>
 After preprocessing, you will output a dataset without splitting into training, validation and testing, as follows：
 ```
-   your raw dataset
-    |-sample 1
-    |   |-HeatMaps
-    |   |   |-HeatMap
-    |   |   |-HeatMap_all
-    |   |-images
-    |   |-labels
-    |   |-spots
-    |-sample 2
-    |   |-HeatMaps
-    |   |   |-HeatMap
-    |   |   |-HeatMap_all
-    |   |-images
-    |   |-labels
-    |   |-spots
-    |-...
-   ```
+your raw dataset
+ |-sample 1
+ |   |-HeatMaps
+ |   |   |-HeatMap
+ |   |   |-HeatMap_all
+ |   |-images
+ |   |-labels
+ |   |-spots
+ |-sample 2
+ |   |-HeatMaps
+ |   |   |-HeatMap
+ |   |   |-HeatMap_all
+ |   |-images
+ |   |-labels
+ |   |-spots
+ |-...
+```
 
 <h3 id="code-run-1">Code run</h3>
 If you use the demo training dataset we provided, you can skip this section. But if you want to train on your own dataset, you first need to run the preprocessing code to satisfy the dataset structure during training.
