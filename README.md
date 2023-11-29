@@ -38,8 +38,17 @@ pip install -r requirement.txt
 
 If you want to run the algorithm on your data, please see  **Training** part.
 
-## Datasets Structure
-```
+## WorkFlow in each phase
+1. Preprocessing if necessary
+
+   Directory structure of initial input data, see hippocampus demo datasets at [GoogleDrive](https://drive.google.com/drive/folders/1TPzSePAuSebq3HAUXtAhHb8OcG0l_i0B?usp=sharing).
+  
+   
+   
+   You need to split the dataset into training, validation, and testing as your training datasets.
+
+2. Training from scratch using preprocessed datasets
+   ```
 your dataset
  |-train
  |   |-Image sample1
@@ -72,13 +81,56 @@ your dataset
  |   |-Image sample2
  |   |-...
 ```
+
+
 ## Data preprocess
-If you use the demo dataset we provided, you can skip this section. But if you want to train on your own dataset, you first need to run the preprocessing code to satisfy the dataset structure during training.
+### Input
+Directory structure of initial input data, see hippocampus demo datasets at [GoogleDrive](https://drive.google.com/drive/folders/1TPzSePAuSebq3HAUXtAhHb8OcG0l_i0B?usp=sharing).
+```
+your raw dataset
+ |-images
+ |   |-image sample 1
+ |   |-image sample 2
+ |   |-...
+ |-labels
+ |   |-label sample 1
+ |   |-label sample 2
+ |   |-...
+ |-spots
+ |   |-spot sample 1
+ |   |-spot sample 2
+ |   |-...
+```
+
+### Output
+After preprocessing, you will output a dataset without splitting into training, validation and test, as follows：
+```
+   your raw dataset
+    |-sample 1
+    |   |-HeatMaps
+    |   |   |-HeatMap
+    |   |   |-HeatMap_all
+    |   |-images
+    |   |-labels
+    |   |-spots
+    |-sample 2
+    |   |-HeatMaps
+    |   |   |-HeatMap
+    |   |   |-HeatMap_all
+    |   |-images
+    |   |-labels
+    |   |-spots
+    |-sample 3
+    |-...
+   ```
+### Code run
+If you use the demo training dataset we provided, you can skip this section. But if you want to train on your own dataset, you first need to run the preprocessing code to satisfy the dataset structure during training.
 
 ```
 python Generate_Image_Label_locationMap.py
 ```
-Note: ```base_dir``` and ```save_crop_dir``` need to be modified to your corresponding path. For the directory structure for data preprocessing, please see our raw simulation datasets at [GoogleDrive](https://drive.google.com/drive/folders/17Xj4XH9zs2zJradk2-ZzHNNBFdTOwWrM?usp=drive_link).
+Note: ```base_dir``` and ```save_crop_dir``` need to be modified to your corresponding path.
+
 
 ## Training from scratch
 To run the algorithm on your data, use:
