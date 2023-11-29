@@ -41,7 +41,7 @@ pip install -r requirement.txt
 
 <h3 id="input-1">Input</h3>
 
-Directory structure of initial input data. See hippocampus demo datasets at [GoogleDrive](https://drive.google.com/drive/folders/1TPzSePAuSebq3HAUXtAhHb8OcG0l_i0B?usp=sharing).
+Directory structure of initial input data. See hippocampus demo datasets at [GoogleDrive](https://drive.google.com/drive/folders/1n0cFQAcqGL3_wfGQtNLO_st7JQZEyd6h?usp=sharing).
 ```
 your raw dataset
  |-images
@@ -80,7 +80,7 @@ your preprocessed dataset
  |-...
 ```
 
-Please see preprocessed hippocampus demo datasets at [GoogleDrive](https://drive.google.com/drive/folders/1n0cFQAcqGL3_wfGQtNLO_st7JQZEyd6h?usp=sharing).
+Please see preprocessed hippocampus demo datasets at [GoogleDrive](https://drive.google.com/drive/folders/1naUyOmtXLtK9-eAvl99mrcxmwJhP3ckT?usp=sharing).
 
 <h3 id="code-run-1">Code run</h3>
 
