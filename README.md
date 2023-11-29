@@ -38,17 +38,7 @@ pip install -r requirement.txt
 
 If you want to run the algorithm on your data, please see  **Training** part.
 
-## WorkFlow in each phase
-1. Preprocessing if necessary
-
-   Directory structure of initial input data, see hippocampus demo datasets at [GoogleDrive](https://drive.google.com/drive/folders/1TPzSePAuSebq3HAUXtAhHb8OcG0l_i0B?usp=sharing).
-  
-   
-   
-   You need to split the dataset into training, validation, and testing as your training datasets.
-
-2. Training from scratch using preprocessed datasets
-   ```
+```
 your dataset
  |-train
  |   |-Image sample1
