@@ -38,43 +38,11 @@ pip install -r requirement.txt
 
 If you want to run the algorithm on your data, please see  **Training** part.
 
-```
-your dataset
- |-train
- |   |-Image sample1
- |   |   |-HeatMaps
- |   |   |   |-HeatMap
- |   |   |   |-HeatMap_all
- |   |   |-images            
- |   |   |-labels 
- |   |   |-spots
- |   |-Image sample2
- |   |-...
- |-val
- |   |-Image sample1
- |   |   |-HeatMaps
- |   |   |   |-HeatMap
- |   |   |   |-HeatMap_all
- |   |   |-images            
- |   |   |-labels 
- |   |   |-spots
- |   |-Image sample2
- |   |-...
- |-test
- |   |-Image sample1
- |   |   |-HeatMaps
- |   |   |   |-HeatMap
- |   |   |   |-HeatMap_all
- |   |   |-images            
- |   |   |-labels 
- |   |   |-spots
- |   |-Image sample2
- |   |-...
-```
+
 
 
 ## Data preprocess
-### Input
+<h3 id="code-run-1">### Code run</h3>
 Directory structure of initial input data, see hippocampus demo datasets at [GoogleDrive](https://drive.google.com/drive/folders/1TPzSePAuSebq3HAUXtAhHb8OcG0l_i0B?usp=sharing).
 ```
 your raw dataset
@@ -93,7 +61,7 @@ your raw dataset
 ```
 
 ### Output
-After preprocessing, you will output a dataset without splitting into training, validation and test, as follows：
+After preprocessing, you will output a dataset without splitting into training, validation and testing, as follows：
 ```
    your raw dataset
     |-sample 1
@@ -110,9 +78,9 @@ After preprocessing, you will output a dataset without splitting into training, 
     |   |-images
     |   |-labels
     |   |-spots
-    |-sample 3
     |-...
    ```
+
 ### Code run
 If you use the demo training dataset we provided, you can skip this section. But if you want to train on your own dataset, you first need to run the preprocessing code to satisfy the dataset structure during training.
 
@@ -123,6 +91,46 @@ Note: ```base_dir``` and ```save_crop_dir``` need to be modified to your corresp
 
 
 ## Training from scratch
+### Input
+You will need to split the output of the preprocessing step into training, validation, and test sets in reasonable proportions. The structure of the dataset should be as follows:
+```
+your dataset
+ |-train
+ |   |-sample 1
+ |   |   |-HeatMaps
+ |   |   |   |-HeatMap
+ |   |   |   |-HeatMap_all
+ |   |   |-images            
+ |   |   |-labels 
+ |   |   |-spots
+ |   |-sample 2
+ |   |-...
+ |-val
+ |   |-sample 3
+ |   |   |-HeatMaps
+ |   |   |   |-HeatMap
+ |   |   |   |-HeatMap_all
+ |   |   |-images            
+ |   |   |-labels 
+ |   |   |-spots
+ |   |-sample 4
+ |   |-...
+ |-test
+ |   |-sample 5
+ |   |   |-HeatMaps
+ |   |   |   |-HeatMap
+ |   |   |   |-HeatMap_all
+ |   |   |-images            
+ |   |   |-labels 
+ |   |   |-spots
+ |   |-sample 6
+ |   |-...
+```
+Then you can start to train your model using 
+
+### Output
+
+### Code run
 To run the algorithm on your data, use:
 
 ```
