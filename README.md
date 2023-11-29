@@ -17,7 +17,7 @@ conda activate GeneSegNet
 conda install pytorch==1.12.1 torchvision==0.13.1 torchaudio==0.12.1 cudatoolkit=11.3 -c pytorch
 ```
 
-but the above command may not match your CUDA environment, please check the link: https://pytorch.org/get-started/previous-versions/#v1121 to find the proper command that satisfied your CUDA environment.
+but the above command may not match your CUDA environment, please check the link: https://pytorch.org/get-started/previous-versions/#v1121 to find the proper command that satisfies your CUDA environment.
 
 3. Clone the repository, use:
 
@@ -132,6 +132,8 @@ your split dataset
 Then you can start to train your model using [command](#code-run-2).
 
 <h3 id="output-2">Output</h3>
+
+After training is completed, the algorithm will save the trained model to your specified path.
 
 <h3 id="code-run-2">Code run</h3>
 
