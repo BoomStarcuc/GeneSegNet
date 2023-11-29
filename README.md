@@ -36,10 +36,6 @@ pip install -r requirement.txt
 1. Download the demo datasets at [GoogleDrive](https://drive.google.com/drive/folders/1rF6U5fSq8D-UpZW-iUy4DG16dyxAzvK7?usp=share_link) and unzip them to your project directory.
 2. Download GeneSegNet pre-trained model at [GoogleDrive](https://drive.google.com/drive/folders/1hzavxQ_zkH6At0vkCzskyg7hlRnKDEC3?usp=sharing), and put it into your project directory.
 
-If you want to run the algorithm on your data, please see  **Training** part.
-
-
-
 
 ## Data preprocess
 <h3 id="input-1">Input</h3>
@@ -63,7 +59,7 @@ your raw dataset
 <h3 id="output-1">Output</h3>
 After preprocessing, you will output a dataset without splitting into training, validation and testing, as follows：
 ```
-your raw dataset
+your preprocessed dataset
  |-sample 1
  |   |-HeatMaps
  |   |   |-HeatMap
@@ -126,7 +122,7 @@ your dataset
  |   |-sample 6
  |   |-...
 ```
-Then you can start to train your model using [command](#code-run-2)
+Then you can start to train your model using .
 
 <h3 id="output-2">Output</h3>
 
