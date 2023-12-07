@@ -333,7 +333,7 @@ def load_data_and_model(root_dir, save_dir, model_path, sigma):
     
 
 if __name__ == '__main__':
-    load inputs
+    #load inputs
     root_dir = 'add your data directory'
     save_dir = 'add a directory to save results'
     model_path = 'add pre-trained model path'
