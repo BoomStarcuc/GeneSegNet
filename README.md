@@ -278,9 +278,9 @@ The output is a .csv file including four columns (```cell_id```, ```spotX```, ``
 
 ```
    cell_id   spotX   spotY   gene
- |    0	      213   419	   Pvalb
- |    0	      248   442	   Gad1
- |    1	      1212  18	    Plp1
+ |    0	      213     419	   Pvalb
+ |    0	      248     442	   Gad1
+ |    1	      1212    18	    Plp1
  |    .        .       .      .
  |    .        .       .      .
  |    .        .       .      .
