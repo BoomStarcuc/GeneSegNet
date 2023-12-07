@@ -74,8 +74,8 @@ def main(spot_dir, label_dir, save_dir):
         
 
 if __name__ == '__main__':
-    spot_dir = 'D:/medicalproject/code/rebuttal_submit_code/preprocessing_testdata/spots' #the path of raw spot data
-    label_dir = 'D:/medicalproject/code/rebuttal_submit_code/inference_results' #the path of generated inference
-    save_dir = 'D:/medicalproject/code/rebuttal_submit_code/mappingrelationship'
+    spot_dir = 'the path of raw spot data'
+    label_dir = 'the path of generated inference'
+    save_dir = 'the path of saving .csv file'
     os.makedirs(save_dir, exist_ok=True)
     main(spot_dir, label_dir, save_dir)
