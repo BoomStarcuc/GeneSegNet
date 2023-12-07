@@ -246,6 +246,52 @@ python slidingwindows_gradient.py
 ```
 Note: ```root_dir```, ```save_dir```, and ```model_file``` need to be modified to your corresponding path.
 
+## Find the mapping relationships between transcripts and cells
+
+<h3 id="input-5">Input</h3>
+
+There are two types of input as follows:
+
+```
+1. your raw spot dataset
+ |-spots
+ |   |-spot sample 1
+ |   |-spot sample 2
+ |   |-...
+
+2. your output of the network inference
+ |-HeatMap
+ |   |-sample 1
+ |   |-sample 2
+ |- predicted full-resolution .mat file for sample 1
+ |- predicted full-resolution .png file for sample 1
+ |- predicted full-resolution .jpg file for sample 1
+ |- predicted full-resolution .mat file for sample 2
+ |- predicted full-resolution .png file for sample 2
+ |- predicted full-resolution .jpg file for sample 2
+ |-...
+```
+
+<h3 id="output-5">Output</h3>
+
+The output is a .csv file including four columns (```cell_id```, ```spotX```, ```spotY```, and ```gene```) so that each gene will find its unique corresponding cell.
+
+```
+   cell_id   spotX   spotY   gene
+ |    0	      213	    419	   Pvalb
+ |    0	      248	    442	   Gad1
+ |    1	      1212	   18	    Plp1
+ |    .        .       .      .
+ |    .        .       .      .
+ |    .        .       .      .
+```
+
+<h3 id="code-run-5">Code run</h3>
+
+```
+python generate_MappingRelationships.py
+```
+Note: ```spot_dir```, ```label_dir```, and ```save_dir``` need to be modified to your corresponding path.
 
 ## Citation
 If you find our work useful for your research, please consider citing the following paper.
